@@ -1,0 +1,27 @@
+# 1. Ambiente Python 
+.venv/
+venv/
+# 2. Cache e bytecode Python 
+__pycache__
+*.pyc
+.pytest_cache
+.coverage
+htmlcov/
+# 3. Django em runtime
+db.sqlite3
+media/
+staticfiles/
+*.log
+# 4. Segredos e ambiente local -só padrões genéricos
+.env
+.env.*
+!.env.example
+*.pem
+# 5. Editor/OS 
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+# 6. Cinto de segurança 
+*.local.md
+notes/
