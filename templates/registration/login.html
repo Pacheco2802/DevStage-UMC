@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Entrar — DevStage{% endblock %}
+
+{% block content %}
+<div class="min-h-screen grid-bg flex items-center justify-center px-6 py-16 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-[rgba(124,58,237,0.08)] via-transparent to-[var(--background)] pointer-events-none"></div>
+
+    <div class="relative w-full max-w-md fade-in">
+        <div class="flex items-center justify-center gap-3 mb-8">
+            <div class="w-10 h-10 rounded-lg bg-[var(--primary)] flex items-center justify-center">
+                <span class="mono text-white font-bold text-sm">DS</span>
+            </div>
+            <span class="font-extrabold text-2xl tracking-tight">
+                Dev<span class="neon-text">Stage</span>
+            </span>
+        </div>
+
+        <div class="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-8">
+            <h1 class="font-bold text-2xl mb-2">Bem-vindo de volta</h1>
+            <p class="text-[var(--muted-foreground)] text-sm mb-8">
+                Entre para publicar desafios ou submeter soluções.
+            </p>
+
+            {% if form.non_field_errors %}
+            <div class="mb-5 px-4 py-3 rounded-lg bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] text-[var(--red)] text-sm">
+                {{ form.non_field_errors|first }}
+            </div>
+            {% endif %}
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                <div>
+                    <label for="id_username" class="text-sm font-semibold mb-2 block">
+                        Nome de usuário <span class="text-[var(--red)]">*</span>
+                    </label>
+                    <input type="text"
+                           name="username"
+                           id="id_username"
+                           required
+                           autofocus
+                           class="w-full bg-[var(--muted)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)] transition-all">
+                </div>
+
+                <div>
+                    <label for="id_password" class="text-sm font-semibold mb-2 block">
+                        Senha <span class="text-[var(--red)]">*</span>
+                    </label>
+                    <input type="password"
+                           name="password"
+                           id="id_password"
+                           required
+                           class="w-full bg-[var(--muted)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)] transition-all">
+                </div>
+
+                {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+                <button type="submit"
+                        class="w-full py-3 rounded-lg bg-[var(--primary)] hover:bg-[var(--accent)] text-white font-semibold transition-all shadow-lg hover:shadow-[var(--neon-glow)] mt-2">
+                    Entrar
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center text-[var(--muted-foreground)] text-xs mt-6">
+            Projeto Final de Curso — Engenharia de Software · UMC
+        </p>
+    </div>
+</div>
+{% endblock %}

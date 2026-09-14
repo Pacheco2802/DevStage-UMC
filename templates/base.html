@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DevStage{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+
+    <style>
+        :root {
+            --background: #09090f;
+            --foreground: #e8e8f0;
+            --card: #111120;
+            --card-foreground: #e8e8f0;
+            --primary: #7c3aed;
+            --primary-foreground: #ffffff;
+            --secondary: #1a1a2e;
+            --secondary-foreground: #a0a0c0;
+            --muted: #16162a;
+            --muted-foreground: #6b6b8a;
+            --accent: #a855f7;
+            --border: #1e1e3a;
+            --ring: #7c3aed;
+
+            --neon: #c084fc;
+            --neon-dim: rgba(192, 132, 252, 0.12);
+            --neon-glow: 0 0 24px rgba(168, 85, 247, 0.35);
+            --gold: #f59e0b;
+            --silver: #94a3b8;
+            --bronze: #cd7c2e;
+            --green: #22c55e;
+            --red: #ef4444;
+            --cyan: #06b6d4;
+        }
+
+        * { scrollbar-width: thin; scrollbar-color: #1e1e3a transparent; }
+        *::-webkit-scrollbar { width: 4px; height: 4px; }
+        *::-webkit-scrollbar-track { background: transparent; }
+        *::-webkit-scrollbar-thumb { background: #1e1e3a; border-radius: 4px; }
+        *::-webkit-scrollbar-thumb:hover { background: #2d2d52; }
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: 'Outfit', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .glow-border {
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.1) inset;
+            transition: all 0.2s ease;
+        }
+        .glow-border:hover {
+            border-color: rgba(168, 85, 247, 0.6);
+            box-shadow: var(--neon-glow);
+        }
+
+        .neon-text {
+            color: var(--neon);
+            text-shadow: 0 0 12px rgba(192, 132, 252, 0.5);
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fade-in 0.4s ease both; }
+
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(126, 58, 237, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(126, 58, 237, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        input:focus, textarea:focus, select:focus { outline: none; }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen">
+
+    {% if user.is_authenticated %}
+    <header class="fixed top-0 left-0 right-0 z-50 border-b border-[var(--border)] bg-[rgba(9,9,15,0.85)] backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-14">
+            <a href="{% url 'challenges:list' %}" class="flex items-center gap-2 group">
+                <div class="w-7 h-7 rounded bg-[var(--primary)] flex items-center justify-center">
+                    <span class="mono text-white font-bold text-xs">DS</span>
+                </div>
+                <span class="font-semibold text-sm tracking-wide">
+                    Dev<span class="text-[var(--neon)]">Stage</span>
+                </span>
+            </a>
+
+            <nav class="flex items-center gap-1">
+                <a href="{% url 'challenges:list' %}"
+                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
+                          {% if request.resolver_match.url_name == 'list' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
+                    Projetos
+                </a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded border border-[var(--border)]">
+                    <div class="w-6 h-6 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center">
+                        <span class="mono text-white font-bold text-[10px]">
+                            {{ user.username|slice:":2"|upper }}
+                        </span>
+                    </div>
+                    <span class="text-sm font-medium">{{ user.username }}</span>
+                    <span class="mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)]">
+                        {{ user.get_role_display }}
+                    </span>
+                </div>
+                <form method="post" action="{% url 'logout' %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="px-3 py-1.5 rounded text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--red)] hover:bg-[var(--muted)] transition-all">
+                        Sair
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
+    {% endif %}
+
+    <main class="{% if user.is_authenticated %}pt-14{% endif %}">
+        {% if messages %}
+        <div class="max-w-7xl mx-auto px-6 pt-6 space-y-2">
+            {% for message in messages %}
+            <div class="fade-in px-4 py-3 rounded-lg border
+                        {% if message.tags == 'error' %}bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.3)] text-[var(--red)]
+                        {% elif message.tags == 'success' %}bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.3)] text-[var(--green)]
+                        {% else %}bg-[var(--neon-dim)] border-[rgba(192,132,252,0.25)] text-[var(--neon)]{% endif %}
+                        text-sm">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
