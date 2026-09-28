@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Termos de Uso · DevStage{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-16">
+    <p class="mono text-xs uppercase tracking-widest text-[var(--muted-foreground)] mb-3">
+        Documento legal
+    </p>
+    <h1 class="text-4xl font-semibold mb-2">Termos de Uso</h1>
+    <p class="text-sm text-[var(--muted-foreground)] mb-10">
+        Última atualização: 27 de setembro de 2026 · Versão 1.0
+    </p>
+
+    <article class="space-y-8 text-sm leading-relaxed text-[var(--foreground)]">
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">1. Aceitação dos termos</h2>
+            <p>
+                Ao criar uma conta na plataforma <strong>DevStage</strong>, você declara que leu,
+                compreendeu e concorda com estes Termos de Uso e com a Política de Privacidade.
+                Se você não concorda com qualquer disposição, não deve utilizar a plataforma.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">2. Sobre a plataforma</h2>
+            <p>
+                A DevStage é uma plataforma acadêmica que conecta estudantes de tecnologia a empresas
+                por meio de desafios técnicos. Empresas publicam desafios, estudantes submetem soluções
+                (link de repositório, deploy opcional e descrição), e as empresas avaliam manualmente.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">3. Contas de usuário</h2>
+            <p class="mb-2">
+                Existem três perfis: <strong>estudante</strong>, <strong>empresa</strong> e
+                <strong>administrador da plataforma</strong>.
+            </p>
+            <ul class="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
+                <li>Estudantes podem se cadastrar livremente e submeter soluções.</li>
+                <li>Contas de empresa passam por aprovação de um administrador antes de publicar desafios.</li>
+                <li>Você é responsável por manter suas credenciais em sigilo.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">4. Conduta esperada</h2>
+            <p>
+                Você concorda em não publicar conteúdo ilícito, ofensivo, discriminatório ou que
+                viole direitos de terceiros. Submissões devem ser de autoria própria e respeitar
+                as licenças dos códigos utilizados.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">5. Propriedade intelectual</h2>
+            <p>
+                O código submetido continua de propriedade do autor. Ao submeter, você concede à
+                empresa avaliadora o direito de visualizar e avaliar a solução exclusivamente para
+                fins do processo do desafio.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">6. Limitação de responsabilidade</h2>
+            <p>
+                A DevStage é fornecida "no estado em que se encontra", sem garantias de disponibilidade
+                contínua. Este é um projeto acadêmico e não constitui vínculo empregatício entre
+                estudantes e empresas cadastradas.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">7. Alterações destes termos</h2>
+            <p>
+                Podemos atualizar estes termos a qualquer momento. Alterações materiais serão
+                comunicadas por e-mail ao usuário cadastrado. O uso continuado após a notificação
+                constitui aceite da nova versão.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">8. Contato</h2>
+            <p>
+                Dúvidas relacionadas a estes Termos podem ser encaminhadas ao encarregado da
+                plataforma pelos canais disponibilizados no rodapé.
+            </p>
+        </section>
+
+    </article>
+
+    <div class="mt-12 pt-6 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+        <a href="{% url 'core:privacy' %}" class="hover:text-[var(--neon)]">Política de Privacidade →</a>
+        <a href="{% url 'challenges:list' %}" class="hover:text-[var(--neon)]">Voltar aos desafios</a>
+    </div>
+</div>
+{% endblock %}

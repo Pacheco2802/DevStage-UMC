@@ -2,9 +2,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from .forms import SubmissionForm
+from .forms import SubmissionForm, ChallengeForm
 from .models import Challenge, Submission
-
+from core.decorators import approved_company_required
 
 @login_required
 def challenge_list(request):
@@ -61,3 +61,18 @@ def _check_can_submit(challenge, user, existing_submission):
     if existing_submission is not None:
         return False, "Você já enviou uma submissão para este desafio."
     return True, ""
+
+@approved_company_required
+def challenge_create(request):
+    if request.method == "POST":
+        form = ChallengeForm(request.POST)
+        if form.is_valid():
+            challenge = form.save(commit=False)
+            challenge.company = request.user.company_profile
+            challenge.save()
+            messages.success(request, "Desafio criado com sucesso!")
+            return redirect("challenges:detail", pk=challenge.pk) 
+    else:
+        form = ChallengeForm()
+
+    return render(request, "challenges/create.html", {"form": form})

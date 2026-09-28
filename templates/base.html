@@ -115,6 +115,13 @@
                           {% if request.resolver_match.url_name == 'list' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
                     Projetos
                 </a>
+                {% if user.role == 'COMPANY' and user.company_profile.approved %}
+                <a href="{% url 'challenges:create' %}"
+                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
+                          {% if request.resolver_match.url_name == 'create' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
+                    Novo desafio
+                </a>
+                {% endif %}
             </nav>
 
             <div class="flex items-center gap-3">
@@ -158,6 +165,16 @@
 
         {% block content %}{% endblock %}
     </main>
+
+    <footer class="border-t border-[var(--border)] mt-16">
+        <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--muted-foreground)]">
+            <span>© 2026 DevStage · Projeto acadêmico UMC</span>
+            <nav class="flex items-center gap-5">
+                <a href="{% url 'core:terms' %}" class="hover:text-[var(--neon)] transition-colors">Termos de Uso</a>
+                <a href="{% url 'core:privacy' %}" class="hover:text-[var(--neon)] transition-colors">Política de Privacidade</a>
+            </nav>
+        </div>
+    </footer>
 
     {% block extra_scripts %}{% endblock %}
 </body>

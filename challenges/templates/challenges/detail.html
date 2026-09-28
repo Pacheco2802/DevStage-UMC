@@ -3,7 +3,7 @@
 {% block title %}{{ challenge.title }} — DevStage{% endblock %}
 
 {% block content %}
-<div class="min-h-screen" x-data="{ tab: 'brief' }">
+<div class="min-h-screen" x-data="{ tab: '{% if form.errors %}submit{% else %}brief{% endif %}' }">
     <div class="max-w-3xl mx-auto px-6 py-12">
 
         <a href="{% url 'challenges:list' %}"
