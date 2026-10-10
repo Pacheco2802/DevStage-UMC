@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}{{ challenge.title }} — DevStage{% endblock %}
+
+{% block content %}
+<div class="min-h-screen" x-data="{ tab: '{% if form.errors %}submit{% else %}brief{% endif %}' }">
+    <div class="max-w-3xl mx-auto px-6 py-12">
+
+        <a href="{% url 'challenges:list' %}"
+           class="flex items-center gap-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-sm mb-6 transition-colors">
+            ← Voltar para projetos
+        </a>
+
+        <div class="flex items-center gap-3 mb-6 fade-in">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white text-base bg-gradient-to-br from-[var(--primary)] to-[var(--accent)]">
+                {{ challenge.company.company_name|slice:":1"|upper }}
+            </div>
+            <div class="flex-1">
+                <div class="font-bold text-xl">{{ challenge.title }}</div>
+                <div class="text-[var(--muted-foreground)] text-sm">{{ challenge.company.company_name }}</div>
+            </div>
+            <div class="text-right">
+                <div class="mono text-[var(--muted-foreground)] text-[10px] uppercase tracking-widest">Prazo</div>
+                <div class="mono text-sm font-semibold text-[var(--neon)]">
+                    {{ challenge.deadline|date:"d M Y — H:i" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-1 bg-[var(--muted)] p-1 rounded-lg mb-6 w-fit">
+            <button @click="tab = 'brief'"
+                    :class="tab === 'brief' ? 'bg-[var(--card)] text-[var(--foreground)] shadow-sm' : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'"
+                    class="px-4 py-1.5 rounded-md text-sm font-medium transition-all">
+                Brief do Projeto
+            </button>
+            <button @click="tab = 'submit'"
+                    :class="tab === 'submit' ? 'bg-[var(--card)] text-[var(--foreground)] shadow-sm' : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'"
+                    class="px-4 py-1.5 rounded-md text-sm font-medium transition-all">
+                Fazer Entrega
+            </button>
+        </div>
+
+        <div x-show="tab === 'brief'" class="space-y-5 fade-in">
+            <div class="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+                <h3 class="font-bold mb-3">Descrição</h3>
+                <p class="text-[var(--muted-foreground)] leading-relaxed whitespace-pre-line">{{ challenge.description }}</p>
+            </div>
+
+            <div class="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6">
+                <h3 class="font-bold mb-3">Status</h3>
+                <div class="flex items-center gap-3">
+                    <span class="w-2 h-2 rounded-full bg-[var(--green)] pulse-dot"></span>
+                    <span class="mono text-sm">{{ challenge.get_status_display|upper }}</span>
+                </div>
+                <div class="mt-3 text-sm text-[var(--muted-foreground)]">
+                    Publicado em <span class="mono">{{ challenge.created_at|date:"d M Y" }}</span> ·
+                    Prazo até <span class="mono text-[var(--neon)]">{{ challenge.deadline|date:"d M Y H:i" }}</span>
+                </div>
+            </div>
+
+            {% if user_submission %}
+            <div class="bg-[rgba(34,197,94,0.08)] border border-[rgba(34,197,94,0.3)] rounded-xl p-6">
+                <h3 class="font-bold mb-3 text-[var(--green)]">✓ Você já enviou uma solução para este desafio</h3>
+                <div class="text-sm text-[var(--muted-foreground)] mb-3">
+                    Enviado em <span class="mono">{{ user_submission.submitted_at|date:"d M Y H:i" }}</span>
+                </div>
+                <a href="{{ user_submission.repo_url }}" target="_blank" rel="noopener"
+                   class="mono text-sm text-[var(--neon)] hover:underline break-all">
+                    {{ user_submission.repo_url }}
+                </a>
+            </div>
+            {% else %}
+            <button @click="tab = 'submit'"
+                    class="w-full py-3 rounded-lg bg-[var(--primary)] hover:bg-[var(--accent)] text-white font-semibold transition-all shadow-lg hover:shadow-[var(--neon-glow)]">
+                Fazer minha entrega →
+            </button>
+            {% endif %}
+        </div>
+
+        <div x-show="tab === 'submit'" class="space-y-5 fade-in" style="display: none;">
+            {% if user_submission %}
+            <div class="bg-[rgba(34,197,94,0.08)] border border-[rgba(34,197,94,0.3)] rounded-xl p-6 text-center">
+                <div class="text-4xl mb-3">✓</div>
+                <h3 class="font-bold text-lg mb-2 text-[var(--green)]">Entrega já registrada</h3>
+                <p class="text-sm text-[var(--muted-foreground)]">
+                    Você só pode enviar uma solução por desafio. Aguarde o feedback da empresa.
+                </p>
+            </div>
+            {% elif not can_submit %}
+            <div class="bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.3)] rounded-xl p-6">
+                <h3 class="font-bold text-lg mb-2 text-[var(--red)]">Este desafio não aceita submissões no momento</h3>
+                <p class="text-sm text-[var(--muted-foreground)]">
+                    {{ block_reason }}
+                </p>
+            </div>
+            {% else %}
+            <form method="post" action="" class="space-y-5">
+                {% csrf_token %}
+
+                <div class="bg-[var(--card)] rounded-xl border border-[var(--border)] p-6 space-y-4">
+                    <div>
+                        <label for="id_repo_url" class="text-sm font-semibold mb-2 block">
+                            URL do Repositório <span class="text-[var(--red)]">*</span>
+                        </label>
+                        <input type="url"
+                               name="repo_url"
+                               id="id_repo_url"
+                               required
+                               placeholder="https://github.com/seu-usuario/projeto"
+                               value="{{ form.repo_url.value|default_if_none:'' }}"
+                               class="w-full bg-[var(--muted)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm mono placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)] transition-all">
+                        {% if form.repo_url.errors %}
+                        <div class="text-[var(--red)] text-xs mt-2">{{ form.repo_url.errors|first }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="id_deploy_url" class="text-sm font-semibold mb-2 block">
+                            URL de Deploy <span class="text-[var(--muted-foreground)] font-normal">(opcional)</span>
+                        </label>
+                        <input type="url"
+                               name="deploy_url"
+                               id="id_deploy_url"
+                               placeholder="https://seu-projeto.railway.app"
+                               value="{{ form.deploy_url.value|default_if_none:'' }}"
+                               class="w-full bg-[var(--muted)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm mono placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)] transition-all">
+                        {% if form.deploy_url.errors %}
+                        <div class="text-[var(--red)] text-xs mt-2">{{ form.deploy_url.errors|first }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="id_description" class="text-sm font-semibold mb-2 block">
+                            Notas para o avaliador <span class="text-[var(--red)]">*</span>
+                        </label>
+                        <textarea name="description"
+                                  id="id_description"
+                                  required
+                                  rows="5"
+                                  placeholder="Descreva decisões de arquitetura, trade-offs, ou qualquer contexto relevante…"
+                                  class="w-full bg-[var(--muted)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)] transition-all resize-none">{{ form.description.value|default_if_none:'' }}</textarea>
+                        {% if form.description.errors %}
+                        <div class="text-[var(--red)] text-xs mt-2">{{ form.description.errors|first }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if form.non_field_errors %}
+                <div class="bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] rounded-xl p-4 text-[var(--red)] text-sm">
+                    {{ form.non_field_errors|first }}
+                </div>
+                {% endif %}
+
+                <div class="bg-[var(--neon-dim)] border border-[rgba(192,132,252,0.25)] rounded-xl p-4 text-sm text-[var(--muted-foreground)]">
+                    <span class="text-[var(--neon)] font-semibold">Antes de enviar:</span>
+                    certifique-se de que o repositório está público. A URL será validada contra o GitHub.
+                </div>
+
+                <button type="submit"
+                        class="w-full py-3 rounded-lg bg-[var(--primary)] hover:bg-[var(--accent)] text-white font-semibold transition-all shadow-lg hover:shadow-[var(--neon-glow)]">
+                    Enviar Entrega
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Política de Privacidade · DevStage{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-16">
+    <p class="mono text-xs uppercase tracking-widest text-[var(--muted-foreground)] mb-3">
+        Documento legal · LGPD
+    </p>
+    <h1 class="text-4xl font-semibold mb-2">Política de Privacidade</h1>
+    <p class="text-sm text-[var(--muted-foreground)] mb-10">
+        Última atualização: 27 de setembro de 2026 · Versão 1.0
+    </p>
+
+    <article class="space-y-8 text-sm leading-relaxed text-[var(--foreground)]">
+
+        <section>
+            <p>
+                Esta política descreve como a plataforma <strong>DevStage</strong> coleta, utiliza,
+                armazena e protege dados pessoais dos seus usuários, em conformidade com a
+                <strong>Lei nº 13.709/2018 (LGPD)</strong>.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">1. Dados coletados</h2>
+            <p class="mb-2">Coletamos os seguintes dados diretamente informados pelo usuário no cadastro:</p>
+            <ul class="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
+                <li><strong>Estudantes:</strong> nome de usuário, e-mail, primeiro nome, senha (armazenada como hash PBKDF2-SHA256).</li>
+                <li><strong>Empresas:</strong> nome de usuário, e-mail, senha (hash) e nome fantasia da empresa.</li>
+                <li><strong>Submissões:</strong> URL do repositório, URL de deploy (opcional) e descrição da solução.</li>
+                <li><strong>Auditoria:</strong> IP de origem, caminho acessado e horário das ações realizadas no sistema.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">2. Base legal (art. 7º LGPD)</h2>
+            <ul class="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
+                <li><strong>Consentimento</strong> do titular no ato do cadastro (art. 7º, I).</li>
+                <li><strong>Execução de contrato</strong> quando os dados são necessários para operar a plataforma (art. 7º, V).</li>
+                <li><strong>Cumprimento de obrigação legal</strong> para os registros de auditoria (art. 7º, II).</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">3. Finalidade do tratamento</h2>
+            <ul class="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
+                <li>Autenticar o usuário e controlar acesso a funcionalidades.</li>
+                <li>Permitir a submissão de soluções e a avaliação por empresas.</li>
+                <li>Manter trilha de auditoria para segurança e integridade da plataforma.</li>
+                <li>Integrar com a API do GitHub para verificar existência de repositórios informados.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">4. Compartilhamento</h2>
+            <p>
+                Dados de submissão (repositório, descrição) são compartilhados com a empresa
+                responsável pelo desafio para fins de avaliação. Não vendemos, alugamos ou
+                cedemos dados pessoais a terceiros para fins publicitários.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">5. Segurança</h2>
+            <ul class="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
+                <li>Senhas armazenadas com hash PBKDF2-SHA256 e salt aleatório por usuário.</li>
+                <li>Comunicação HTTPS em ambiente de produção.</li>
+                <li>Controle de acesso por perfil (RBAC) restringindo funcionalidades sensíveis.</li>
+                <li>Trilha de auditoria imutável (sem edição, apenas leitura por administradores).</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">6. Direitos do titular (art. 18 LGPD)</h2>
+            <p class="mb-2">Você pode, a qualquer momento, solicitar:</p>
+            <ul class="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
+                <li>Confirmação da existência de tratamento;</li>
+                <li>Acesso aos seus dados;</li>
+                <li>Correção de dados incompletos, inexatos ou desatualizados;</li>
+                <li>Anonimização, bloqueio ou eliminação de dados desnecessários;</li>
+                <li>Portabilidade dos dados a outro fornecedor;</li>
+                <li>Revogação do consentimento.</li>
+            </ul>
+            <p class="mt-2 text-[var(--muted-foreground)]">
+                Solicitações devem ser encaminhadas ao encarregado indicado no item 8.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">7. Retenção e exclusão</h2>
+            <p>
+                Dados pessoais são mantidos enquanto a conta estiver ativa. Registros de auditoria
+                são preservados por período mínimo definido por obrigação legal, ainda que a conta
+                seja excluída, com o campo de usuário anonimizado (SET NULL).
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">8. Encarregado (DPO)</h2>
+            <p>
+                O encarregado pela proteção de dados pode ser contatado pelo canal oficial
+                da plataforma. Este é um projeto acadêmico e o encarregado é o próprio
+                mantenedor do sistema.
+            </p>
+        </section>
+
+    </article>
+
+    <div class="mt-12 pt-6 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--muted-foreground)]">
+        <a href="{% url 'core:terms' %}" class="hover:text-[var(--neon)]">← Termos de Uso</a>
+        <a href="{% url 'challenges:list' %}" class="hover:text-[var(--neon)]">Voltar aos desafios</a>
+    </div>
+</div>
+{% endblock %}
