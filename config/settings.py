@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Terceiros
+    'rest_framework',
     # Apps do projeto
     'accounts',
     'challenges',
@@ -146,3 +148,10 @@ LGPD_TERMS_VERSION = "1.0"
 DPO_NAME = env.str("DPO_NAME", default="Pedro Henrique Prado Pacheco")
 DPO_EMAIL = env.str("DPO_EMAIL", default="dpo@devstage.com.br")
 
+# Django REST Framework: usado só nos endpoints JSON do dashboard.
+# Autenticação pela mesma sessão do site; nada de API pública.
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+}

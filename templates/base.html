@@ -116,6 +116,11 @@
                           {% if request.resolver_match.url_name == 'list' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
                     Projetos
                 </a>
+                <a href="{% url 'dashboard:index' %}"
+                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
+                          {% if request.resolver_match.app_name == 'dashboard' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
+                    Dashboard
+                </a>
                 <a href="{% url 'portfolio:ranking' %}"
                    class="px-3 py-1.5 rounded text-sm font-medium transition-all
                           {% if request.resolver_match.app_name == 'portfolio' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
@@ -153,7 +158,7 @@
                     </div>
                     <span class="text-sm font-medium">{{ user.username }}</span>
                     <span class="mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)]">
-                        {{ user.get_role_display }}
+                        {% if user.is_superuser %}Administrador{% else %}{{ user.get_role_display }}{% endif %}
                     </span>
                 </div>
                 <a href="{% url 'my_data' %}"
