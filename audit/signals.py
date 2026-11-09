@@ -4,7 +4,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from accounts.models import CompanyProfile, ConsentLog
 from core.utils import get_client_ip
-from challenges.models import Challenge, Submission
+from challenges.models import Challenge, Evaluation, Submission
 from .models import AuditLog
 
 User = get_user_model()
@@ -43,6 +43,6 @@ def _log_delete(sender, instance, **kwargs):
         target_id=str(instance.pk),
     )
 
-for model in (User, CompanyProfile, Challenge, Submission, ConsentLog):
+for model in (User, CompanyProfile, Challenge, Submission, Evaluation, ConsentLog):
     post_save.connect(_log_save, sender=model)
     post_delete.connect(_log_delete, sender=model)

@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Challenge
 from .models import Submission
+from .models import Evaluation
 
 # Register your models here.
 @admin.register(Challenge)
@@ -17,3 +18,11 @@ class SubmissionAdmin(admin.ModelAdmin):
     search_fields = ["challenge__title", "student__username", "repo_url"]
     autocomplete_fields = ["challenge", "student"]
     readonly_fields = ["submitted_at"]
+
+
+@admin.register(Evaluation)
+class EvaluationAdmin(admin.ModelAdmin):
+    list_display = ["submission", "score", "evaluated_by", "evaluated_at"]
+    list_filter = ["score"]
+    search_fields = ["submission__challenge__title", "submission__student__username"]
+    readonly_fields = ["evaluated_at", "updated_at"]

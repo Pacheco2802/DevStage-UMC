@@ -116,6 +116,25 @@
                           {% if request.resolver_match.url_name == 'list' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
                     Projetos
                 </a>
+                <a href="{% url 'portfolio:ranking' %}"
+                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
+                          {% if request.resolver_match.app_name == 'portfolio' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
+                    Ranking
+                </a>
+                {% if user.role == 'STUDENT' and not user.is_superuser %}
+                <a href="{% url 'challenges:my_submissions' %}"
+                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
+                          {% if request.resolver_match.url_name == 'my_submissions' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
+                    Minhas submissões
+                </a>
+                {% endif %}
+                {% if user.role == 'COMPANY' %}
+                <a href="{% url 'challenges:mine' %}"
+                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
+                          {% if request.resolver_match.url_name == 'mine' or request.resolver_match.url_name == 'submissions' or request.resolver_match.url_name == 'edit' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
+                    Meus desafios
+                </a>
+                {% endif %}
                 {% if user.role == 'COMPANY' and user.company_profile.approved %}
                 <a href="{% url 'challenges:create' %}"
                    class="px-3 py-1.5 rounded text-sm font-medium transition-all
