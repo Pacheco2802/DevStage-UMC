@@ -49,3 +49,20 @@ class CompanySignupForm(UserCreationForm):
                 # appproved fica no default false do model
             )
         return user
+
+
+class MyDataForm(forms.ModelForm):
+    """Correção de dados cadastrais (art. 18, III)."""
+    email = forms.EmailField(required=True, label="E-mail")
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email"]
+        labels = {"first_name": "Nome", "last_name": "Sobrenome"}
+
+
+class CompanyDataForm(forms.ModelForm):
+    class Meta:
+        model = CompanyProfile
+        fields = ["company_name"]
+        labels = {"company_name": "Nome da empresa"}

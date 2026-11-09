@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Meus Dados · DevStage{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 py-12 space-y-8">
+
+    <div>
+        <p class="mono text-xs uppercase tracking-widest text-[var(--muted-foreground)] mb-2">
+            Privacidade · LGPD art. 18
+        </p>
+        <h1 class="text-3xl font-semibold mb-2">Meus Dados</h1>
+        <p class="text-sm text-[var(--muted-foreground)]">
+            Veja, corrija, exporte ou elimine os dados pessoais que a DevStage mantém sobre você.
+        </p>
+    </div>
+
+    {# ---------- Acesso + correção ---------- #}
+    <section class="glow-border rounded-xl bg-[var(--card)] p-6">
+        <h2 class="font-semibold mb-1">Dados cadastrais</h2>
+        <p class="text-xs text-[var(--muted-foreground)] mb-5">Acesso e correção (art. 18, II e III)</p>
+
+        <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 text-sm">
+            <div>
+                <dt class="mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)]">Usuário</dt>
+                <dd class="mt-1">{{ user.username }}</dd>
+            </div>
+            <div>
+                <dt class="mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)]">Perfil</dt>
+                <dd class="mt-1">{{ user.get_role_display }}</dd>
+            </div>
+            <div>
+                <dt class="mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)]">Cadastro</dt>
+                <dd class="mt-1">{{ user.date_joined|date:"d/m/Y H:i" }}</dd>
+            </div>
+        </dl>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% for field in form %}
+                <div class="{% if field.name == 'email' %}sm:col-span-2{% endif %}">
+                    <label for="{{ field.id_for_label }}"
+                           class="block mb-1.5 text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">
+                        {{ field.label }}
+                    </label>
+                    <input type="{{ field.field.widget.input_type|default:'text' }}"
+                           name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                           value="{{ field.value|default:'' }}"
+                           {% if field.field.required %}required{% endif %}
+                           class="w-full px-3 py-2 rounded bg-[var(--secondary)] border border-[var(--border)] text-sm focus:border-[var(--primary)] transition-colors">
+                    {% for error in field.errors %}
+                    <p class="mt-1 text-xs text-[var(--red)]">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                {% if company_form %}
+                {% for field in company_form %}
+                <div class="sm:col-span-2">
+                    <label for="{{ field.id_for_label }}"
+                           class="block mb-1.5 text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">
+                        {{ field.label }}
+                    </label>
+                    <input type="text" name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                           value="{{ field.value|default:'' }}" required
+                           class="w-full px-3 py-2 rounded bg-[var(--secondary)] border border-[var(--border)] text-sm focus:border-[var(--primary)] transition-colors">
+                    {% for error in field.errors %}
+                    <p class="mt-1 text-xs text-[var(--red)]">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <button type="submit"
+                    class="px-4 py-2 rounded bg-[var(--primary)] hover:bg-[var(--accent)] text-white text-sm font-medium transition-colors">
+                Salvar alterações
+            </button>
+        </form>
+    </section>
+
+    {# ---------- Consentimento ---------- #}
+    <section class="glow-border rounded-xl bg-[var(--card)] p-6" x-data="{ confirmRevoke: false }">
+        <h2 class="font-semibold mb-1">Consentimento</h2>
+        <p class="text-xs text-[var(--muted-foreground)] mb-5">
+            Histórico de aceites dos termos · versão vigente <span class="mono text-[var(--neon)]">{{ LGPD_TERMS_VERSION }}</span>
+        </p>
+
+        {% if consents %}
+        <div class="overflow-x-auto mb-5">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] border-b border-[var(--border)]">
+                        <th class="py-2 pr-4">Versão</th>
+                        <th class="py-2 pr-4">Aceito em</th>
+                        <th class="py-2 pr-4">IP</th>
+                        <th class="py-2">Situação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in consents %}
+                    <tr class="border-b border-[var(--border)] last:border-0">
+                        <td class="py-2 pr-4 mono">{{ c.terms_version }}</td>
+                        <td class="py-2 pr-4">{{ c.accepted_at|date:"d/m/Y H:i" }}</td>
+                        <td class="py-2 pr-4 mono text-xs">{{ c.ip|default:"—" }}</td>
+                        <td class="py-2">
+                            {% if c.revoked_at %}
+                            <span class="text-xs text-[var(--red)]">Revogado em {{ c.revoked_at|date:"d/m/Y H:i" }}</span>
+                            {% else %}
+                            <span class="text-xs text-[var(--green)]">Ativo</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-sm text-[var(--muted-foreground)] mb-5">Nenhum registro de consentimento encontrado.</p>
+        {% endif %}
+
+        <button type="button" x-show="!confirmRevoke" @click="confirmRevoke = true"
+                class="px-4 py-2 rounded border border-[rgba(239,68,68,0.4)] text-[var(--red)] text-sm hover:bg-[rgba(239,68,68,0.1)] transition-colors">
+            Revogar consentimento
+        </button>
+        <div x-show="confirmRevoke" x-cloak class="rounded-lg border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.06)] p-4">
+            <p class="text-sm mb-3">
+                Sem consentimento não podemos tratar seus dados: <strong>sua conta será desativada</strong>
+                e você será desconectado. Para reativar, entre em contato com o encarregado ({{ DPO_EMAIL }}).
+            </p>
+            <form method="post" action="{% url 'revoke_consent' %}" class="flex gap-2">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 rounded bg-[var(--red)] text-white text-sm font-medium">Confirmar revogação</button>
+                <button type="button" @click="confirmRevoke = false" class="px-4 py-2 rounded text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">Cancelar</button>
+            </form>
+        </div>
+    </section>
+
+    {# ---------- Portabilidade ---------- #}
+    <section class="glow-border rounded-xl bg-[var(--card)] p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="font-semibold mb-1">Exportar meus dados</h2>
+            <p class="text-xs text-[var(--muted-foreground)]">
+                Portabilidade (art. 18, V) · arquivo JSON com cadastro, consentimentos, submissões e auditoria
+            </p>
+        </div>
+        <a href="{% url 'my_data_export' %}"
+           class="shrink-0 px-4 py-2 rounded border border-[var(--border)] text-sm hover:border-[var(--primary)] hover:text-[var(--neon)] transition-colors">
+            Baixar JSON
+        </a>
+    </section>
+
+    {# ---------- Atividade ---------- #}
+    <section class="glow-border rounded-xl bg-[var(--card)] p-6">
+        <h2 class="font-semibold mb-1">Atividade recente</h2>
+        <p class="text-xs text-[var(--muted-foreground)] mb-5">
+            Últimos registros de auditoria vinculados à sua conta · {{ submissions|length }} submissão(ões) enviada(s)
+        </p>
+        {% if audit_logs %}
+        <ul class="space-y-2 text-sm">
+            {% for log in audit_logs %}
+            <li class="flex items-center justify-between border-b border-[var(--border)] last:border-0 pb-2">
+                <span>{{ log.get_action_display }} <span class="mono text-xs text-[var(--muted-foreground)]">{{ log.path }}</span></span>
+                <span class="mono text-xs text-[var(--muted-foreground)]">{{ log.timestamp|date:"d/m/Y H:i" }} · {{ log.ip|default:"—" }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-sm text-[var(--muted-foreground)]">Nenhuma atividade registrada.</p>
+        {% endif %}
+    </section>
+
+    {# ---------- Eliminação ---------- #}
+    <section class="rounded-xl border border-[rgba(239,68,68,0.3)] bg-[var(--card)] p-6" x-data="{ open: false }">
+        <h2 class="font-semibold text-[var(--red)] mb-1">Excluir minha conta</h2>
+        <p class="text-xs text-[var(--muted-foreground)] mb-4">
+            Eliminação (art. 18, VI) · nome, e-mail e usuário são anonimizados e a conta é desativada.
+            Submissões e desafios permanecem sem vínculo identificável. Esta ação não pode ser desfeita.
+        </p>
+        <button type="button" x-show="!open" @click="open = true"
+                class="px-4 py-2 rounded border border-[rgba(239,68,68,0.4)] text-[var(--red)] text-sm hover:bg-[rgba(239,68,68,0.1)] transition-colors">
+            Excluir minha conta
+        </button>
+        <form x-show="open" x-cloak method="post" action="{% url 'my_data_delete' %}" class="space-y-3">
+            {% csrf_token %}
+            <label class="block text-sm">
+                Para confirmar, digite seu nome de usuário: <strong class="mono">{{ user.username }}</strong>
+            </label>
+            <input type="text" name="confirm_username" autocomplete="off" required
+                   class="w-full sm:w-80 px-3 py-2 rounded bg-[var(--secondary)] border border-[var(--border)] text-sm focus:border-[var(--red)]">
+            <div class="flex gap-2">
+                <button type="submit" class="px-4 py-2 rounded bg-[var(--red)] text-white text-sm font-medium">Excluir definitivamente</button>
+                <button type="button" @click="open = false" class="px-4 py-2 rounded text-sm text-[var(--muted-foreground)] hover:bg-[var(--muted)]">Cancelar</button>
+            </div>
+        </form>
+    </section>
+
+    {# ---------- DPO ---------- #}
+    <p class="text-xs text-[var(--muted-foreground)] text-center">
+        Encarregado de dados (DPO): {{ DPO_NAME }} ·
+        <a href="mailto:{{ DPO_EMAIL }}" class="mono text-[var(--neon)] hover:underline">{{ DPO_EMAIL }}</a>
+    </p>
+</div>
+{% endblock %}

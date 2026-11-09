@@ -74,6 +74,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.lgpd',
             ],
         },
     },
@@ -137,3 +138,11 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/challenges/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
+
+# LGPD
+# Versão vigente dos Termos de Uso / Política de Privacidade. Ao alterar os documentos,
+# incremente aqui: cada aceite (ConsentLog) grava a versão que o usuário aceitou.
+LGPD_TERMS_VERSION = "1.0"
+DPO_NAME = env.str("DPO_NAME", default="Pedro Henrique Prado Pacheco")
+DPO_EMAIL = env.str("DPO_EMAIL", default="dpo@devstage.com.br")
+
