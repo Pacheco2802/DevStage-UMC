@@ -31,6 +31,16 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
+# Produção atrás do proxy do Railway
+# O proxy recebe HTTPS do navegador e repassa HTTP ao gunicorn; este cabeçalho
+# avisa ao Django que a requisição original era segura.
+SECURE_PROXY_SSL_HEADER = ['HTTP_X_FORWARDED_PROTO', 'https']
+# Origens aceitas em POSTs (login, formulários). Precisa do esquema: https://dominio
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+# Cookies só trafegam por HTTPS em produção; localmente (DEBUG=True) http://
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
 
 # Application definition
 
@@ -164,3 +174,8 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}
 }
+
+
+# Campos de URL assumem https:// quando o usuário não informa o esquema
+# (antecipa o padrão do Django 6.0 e silencia o RemovedInDjango60Warning)
+FORMS_URLFIELD_ASSUME_HTTPS = True
