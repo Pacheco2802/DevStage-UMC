@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Novo desafio · DevStage{% endblock %}
+{% block title %}{% if challenge %}Editar desafio{% else %}Novo desafio{% endif %} · DevStage{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto px-6 py-10">
     <div class="mb-8">
         <p class="mono text-xs uppercase tracking-widest text-[var(--muted-foreground)] mb-2">
-            Empresa · Novo desafio
+            Empresa · {% if challenge %}Editar desafio{% else %}Novo desafio{% endif %}
         </p>
-        <h1 class="text-3xl font-semibold">Publicar um desafio técnico</h1>
+        <h1 class="text-3xl font-semibold">{% if challenge %}{{ challenge.title }}{% else %}Publicar um desafio técnico{% endif %}</h1>
         <p class="text-sm text-[var(--muted-foreground)] mt-2">
             Descreva o problema, defina o prazo e escolha se abre para submissões imediatamente.
         </p>
@@ -53,14 +53,14 @@
         {% endfor %}
 
         <div class="flex items-center justify-end gap-3 pt-2">
-            <a href="{% url 'challenges:list' %}"
+            <a href="{% if challenge %}{% url 'challenges:mine' %}{% else %}{% url 'challenges:list' %}{% endif %}"
                class="px-4 py-2 rounded text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                 Cancelar
             </a>
             <button type="submit"
                     class="px-5 py-2 rounded bg-[var(--primary)] hover:bg-[var(--accent)]
                            text-white font-medium text-sm transition-colors">
-                Publicar desafio
+                {% if challenge %}Salvar alterações{% else %}Publicar desafio{% endif %}
             </button>
         </div>
     </form>

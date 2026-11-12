@@ -8,7 +8,7 @@
     </p>
     <h1 class="text-4xl font-semibold mb-2">Política de Privacidade</h1>
     <p class="text-sm text-[var(--muted-foreground)] mb-10">
-        Última atualização: 27 de setembro de 2026 · Versão 1.0
+        Última atualização: 31 de outubro de 2026 · Versão {{ LGPD_TERMS_VERSION }}
     </p>
 
     <article class="space-y-8 text-sm leading-relaxed text-[var(--foreground)]">
@@ -82,7 +82,12 @@
                 <li>Revogação do consentimento.</li>
             </ul>
             <p class="mt-2 text-[var(--muted-foreground)]">
-                Solicitações devem ser encaminhadas ao encarregado indicado no item 8.
+                Usuários autenticados exercem esses direitos diretamente na página
+                {% if user.is_authenticated %}<a href="{% url 'my_data' %}" class="text-[var(--neon)] hover:underline">Meus Dados</a>{% else %}<strong>Meus Dados</strong>{% endif %}:
+                visualizar todos os dados e o histórico de consentimento, corrigir dados cadastrais,
+                exportar os dados em JSON (portabilidade), revogar o consentimento e solicitar a
+                eliminação (anonimização) da conta. Demais solicitações podem ser enviadas ao
+                encarregado indicado no item 8.
             </p>
         </section>
 
@@ -91,16 +96,28 @@
             <p>
                 Dados pessoais são mantidos enquanto a conta estiver ativa. Registros de auditoria
                 são preservados por período mínimo definido por obrigação legal, ainda que a conta
-                seja excluída, com o campo de usuário anonimizado (SET NULL).
+                seja excluída. Ao solicitar a eliminação, os dados identificáveis da conta
+                (nome, e-mail e nome de usuário) são anonimizados e a conta é desativada;
+                desafios, submissões e avaliações permanecem sem vínculo identificável, para não
+                prejudicar outros usuários. O registro do consentimento é mantido como prova
+                do tratamento realizado (art. 16, I).
             </p>
         </section>
 
         <section>
             <h2 class="text-lg font-semibold text-[var(--neon)] mb-2">8. Encarregado (DPO)</h2>
-            <p>
-                O encarregado pela proteção de dados pode ser contatado pelo canal oficial
-                da plataforma. Este é um projeto acadêmico e o encarregado é o próprio
-                mantenedor do sistema.
+            <p class="mb-3">
+                Nos termos do art. 41 da LGPD, o encarregado pelo tratamento de dados pessoais é:
+            </p>
+            <div class="rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 space-y-1">
+                <p><span class="text-[var(--muted-foreground)]">Nome:</span> {{ DPO_NAME }}</p>
+                <p>
+                    <span class="text-[var(--muted-foreground)]">E-mail:</span>
+                    <a href="mailto:{{ DPO_EMAIL }}" class="mono text-[var(--neon)] hover:underline">{{ DPO_EMAIL }}</a>
+                </p>
+            </div>
+            <p class="mt-3 text-[var(--muted-foreground)]">
+                Solicitações enviadas ao encarregado são respondidas em até 15 dias (art. 19, II).
             </p>
         </section>
 

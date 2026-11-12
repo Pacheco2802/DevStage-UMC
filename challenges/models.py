@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.conf import settings
 
@@ -53,3 +54,36 @@ class Submission(models.Model):
         ordering = ["-submitted_at"]
     def __str__(self):
           return f"{self.student.username} → {self.challenge.title}"
+
+
+class Evaluation(models.Model):
+    """Avaliação da empresa: uma por submissão (OneToOne), nota de 0 a 10 e feedback."""
+    submission = models.OneToOneField(
+        Submission,
+        on_delete=models.CASCADE,
+        related_name="evaluation",
+    )
+    evaluated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="evaluations_given",
+    )
+    score = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(10)],
+    )
+    feedback = models.TextField()
+    evaluated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            # Mesmo que alguém salve fora do form, o banco recusa nota fora da faixa
+            models.CheckConstraint(
+                condition=models.Q(score__gte=0) & models.Q(score__lte=10),
+                name="evaluation_score_between_0_and_10",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.submission} - nota {self.score}"

@@ -91,6 +91,7 @@
         }
 
         input:focus, textarea:focus, select:focus { outline: none; }
+        [x-cloak] { display: none !important; }
     </style>
 
     {% block extra_head %}{% endblock %}
@@ -115,6 +116,30 @@
                           {% if request.resolver_match.url_name == 'list' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
                     Projetos
                 </a>
+                <a href="{% url 'dashboard:index' %}"
+                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
+                          {% if request.resolver_match.app_name == 'dashboard' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
+                    Dashboard
+                </a>
+                <a href="{% url 'portfolio:ranking' %}"
+                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
+                          {% if request.resolver_match.app_name == 'portfolio' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
+                    Ranking
+                </a>
+                {% if user.role == 'STUDENT' and not user.is_superuser %}
+                <a href="{% url 'challenges:my_submissions' %}"
+                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
+                          {% if request.resolver_match.url_name == 'my_submissions' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
+                    Minhas submissões
+                </a>
+                {% endif %}
+                {% if user.role == 'COMPANY' %}
+                <a href="{% url 'challenges:mine' %}"
+                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
+                          {% if request.resolver_match.url_name == 'mine' or request.resolver_match.url_name == 'submissions' or request.resolver_match.url_name == 'edit' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
+                    Meus desafios
+                </a>
+                {% endif %}
                 {% if user.role == 'COMPANY' and user.company_profile.approved %}
                 <a href="{% url 'challenges:create' %}"
                    class="px-3 py-1.5 rounded text-sm font-medium transition-all
@@ -133,9 +158,14 @@
                     </div>
                     <span class="text-sm font-medium">{{ user.username }}</span>
                     <span class="mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)]">
-                        {{ user.get_role_display }}
+                        {% if user.is_superuser %}Administrador{% else %}{{ user.get_role_display }}{% endif %}
                     </span>
                 </div>
+                <a href="{% url 'my_data' %}"
+                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
+                          {% if request.resolver_match.url_name == 'my_data' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
+                    Meus dados
+                </a>
                 <form method="post" action="{% url 'logout' %}" class="inline">
                     {% csrf_token %}
                     <button type="submit"
@@ -172,6 +202,7 @@
             <nav class="flex items-center gap-5">
                 <a href="{% url 'core:terms' %}" class="hover:text-[var(--neon)] transition-colors">Termos de Uso</a>
                 <a href="{% url 'core:privacy' %}" class="hover:text-[var(--neon)] transition-colors">Política de Privacidade</a>
+                <a href="mailto:{{ DPO_EMAIL }}" class="hover:text-[var(--neon)] transition-colors">Encarregado (DPO): {{ DPO_EMAIL }}</a>
             </nav>
         </div>
     </footer>

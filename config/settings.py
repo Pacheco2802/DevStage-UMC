@@ -31,6 +31,16 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
+# Produção atrás do proxy do Railway
+# O proxy recebe HTTPS do navegador e repassa HTTP ao gunicorn; este cabeçalho
+# avisa ao Django que a requisição original era segura.
+SECURE_PROXY_SSL_HEADER = ['HTTP_X_FORWARDED_PROTO', 'https']
+# Origens aceitas em POSTs (login, formulários). Precisa do esquema: https://dominio
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+# Cookies só trafegam por HTTPS em produção; localmente (DEBUG=True) http://
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
 
 # Application definition
 
@@ -42,6 +52,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Terceiros
+    'rest_framework',
     # Apps do projeto
     'accounts',
     'challenges',
@@ -54,6 +66,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -74,6 +87,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.lgpd',
             ],
         },
     },
@@ -88,6 +102,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': env.db('DATABASE_URL'),
 }
+# Conexões persistentes: cada worker reaproveita a conexão com o Postgres por
+# CONN_MAX_AGE segundos, em vez de abrir uma nova a cada requisição.
+# 0 = comportamento antigo (abre e fecha sempre); útil para comparar no teste de carga.
+DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=60)
+# Antes de reutilizar, testa se a conexão ainda está viva (o banco pode tê-la derrubado).
+DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 
 # Password validation
@@ -126,6 +146,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# pasta para onde o collectstatic copia todos os estáticos
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -137,3 +160,28 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/challenges/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
+
+# LGPD
+# Versão vigente dos Termos de Uso / Política de Privacidade. Ao alterar os documentos,
+# incremente aqui: cada aceite (ConsentLog) grava a versão que o usuário aceitou.
+LGPD_TERMS_VERSION = "1.0"
+DPO_NAME = env.str("DPO_NAME", default="Pedro Henrique Prado Pacheco")
+DPO_EMAIL = env.str("DPO_EMAIL", default="dpo@devstage.com.br")
+
+# Django REST Framework: usado só nos endpoints JSON do dashboard.
+# Autenticação pela mesma sessão do site; nada de API pública.
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+}
+
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}
+}
+
+
+# Campos de URL assumem https:// quando o usuário não informa o esquema
+# (antecipa o padrão do Django 6.0 e silencia o RemovedInDjango60Warning)
+FORMS_URLFIELD_ASSUME_HTTPS = True
