@@ -1,0 +1,10 @@
+# Configuracao do linter (Ruff), usada localmente e na pipeline de CI.
+target-version = "py312"
+line-length = 120
+
+# Codigo gerado automaticamente ou de terceiros nao entra na analise.
+extend-exclude = ["migrations", "staticfiles"]
+
+[lint]
+# E/W = estilo PEP 8 (pycodestyle), F = erros reais (pyflakes), I = ordem dos imports (isort)
+select = ["E", "W", "F", "I"]
