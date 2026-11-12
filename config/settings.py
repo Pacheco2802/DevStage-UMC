@@ -102,6 +102,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': env.db('DATABASE_URL'),
 }
+# Conexões persistentes: cada worker reaproveita a conexão com o Postgres por
+# CONN_MAX_AGE segundos, em vez de abrir uma nova a cada requisição.
+# 0 = comportamento antigo (abre e fecha sempre); útil para comparar no teste de carga.
+DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=60)
+# Antes de reutilizar, testa se a conexão ainda está viva (o banco pode tê-la derrubado).
+DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 
 # Password validation

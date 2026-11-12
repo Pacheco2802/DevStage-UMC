@@ -1,0 +1,13 @@
+# Configuração de build e deploy do Railway (versionada junto com o código)
+
+[build]
+# staticfiles/ está no .gitignore: é gerada na construção da imagem
+buildCommand = "python manage.py collectstatic --noinput"
+
+[deploy]
+# Migra ANTES de trocar a versão; se falhar, o deploy é abortado e a versão antiga segue no ar
+preDeployCommand = ["python manage.py migrate --noinput"]
+# PORT (definida pelo Railway) e WEB_CONCURRENCY (nº de workers) são lidas pelo gunicorn
+startCommand = "gunicorn config.wsgi --access-logfile -"
+# O deploy só é considerado pronto quando esta página responde 200
+healthcheckPath = "/accounts/login/"
