@@ -51,7 +51,9 @@ def test_meusDesafios_comoEstudante_deveRedirecionarParaLista(client, estudante)
 
 
 @pytest.mark.django_db
-def test_meusDesafios_comoEmpresa_deveListarSoOsPropriosComContagem(client, empresa, estudante, desafio_aberto, desafio_da_outra):
+def test_meusDesafios_comoEmpresa_deveListarSoOsPropriosComContagem(
+    client, empresa, estudante, desafio_aberto, desafio_da_outra
+):
     _submeter(desafio_aberto, estudante)
     client.force_login(empresa.user)
 

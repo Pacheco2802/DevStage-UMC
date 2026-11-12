@@ -1,5 +1,5 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
 
 # Create your models here.
 
@@ -32,4 +32,3 @@ class AuditLog(models.Model):
     def __str__(self):
         who = self.user.username if self.user else "anônimo"
         return f"[{self.timestamp:%Y-%m-%d %H:%M}] {who} · {self.action} · {self.target_model}#{self.target_id}"
-    

@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, CompanyProfile
 from django.db import transaction
+
+from .models import CompanyProfile, User
+
 
 class StudentSignupForm(UserCreationForm):
     # Campo extra
