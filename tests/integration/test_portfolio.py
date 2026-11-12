@@ -27,7 +27,9 @@ def _avaliada(desafio, aluno, nota, empresa):
     submissao = Submission.objects.create(
         challenge=desafio, student=aluno, repo_url="https://github.com/a/b", description="Solução",
     )
-    Evaluation.objects.create(submission=submissao, evaluated_by=empresa.user, score=nota, feedback="Feedback de teste.")
+    Evaluation.objects.create(
+        submission=submissao, evaluated_by=empresa.user, score=nota, feedback="Feedback de teste."
+    )
     return submissao
 
 
@@ -84,7 +86,9 @@ def test_paginaRanking_semLogin_deveRedirecionar(client):
 @pytest.mark.django_db
 def test_portfolio_deveTrazerMediaPosicaoESoAsAvaliadas(cenario, empresa):
     ana = cenario["ana"]
-    Submission.objects.create(challenge=_desafio(empresa, "Sem nota"), student=ana, repo_url="https://github.com/a/c", description="x")
+    Submission.objects.create(
+        challenge=_desafio(empresa, "Sem nota"), student=ana, repo_url="https://github.com/a/c", description="x"
+    )
 
     dados = portfolio_do_estudante(ana)
 

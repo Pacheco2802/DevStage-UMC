@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from .models import User
-from .models import CompanyProfile
-from .models import ConsentLog
+
+from .models import CompanyProfile, ConsentLog, User
+
 
 # Register your models here.
 @admin.register(User)

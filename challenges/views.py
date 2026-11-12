@@ -1,12 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Count
 from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from .forms import SubmissionForm, ChallengeForm, EvaluationForm
-from .models import Challenge, Submission, Evaluation
+
 from core.decorators import approved_company_required, company_required, student_required
+
+from .forms import ChallengeForm, EvaluationForm, SubmissionForm
+from .models import Challenge, Evaluation, Submission
+
 
 @login_required
 def challenge_list(request):
@@ -76,7 +79,7 @@ def challenge_create(request):
             challenge.company = request.user.company_profile
             challenge.save()
             messages.success(request, "Desafio criado com sucesso!")
-            return redirect("challenges:detail", pk=challenge.pk) 
+            return redirect("challenges:detail", pk=challenge.pk)
     else:
         form = ChallengeForm()
 

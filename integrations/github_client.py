@@ -1,4 +1,5 @@
 import re
+
 import requests
 
 # Aceita https://github.com/owner/repo, com ou sem .git no fim, com ou sem barra final

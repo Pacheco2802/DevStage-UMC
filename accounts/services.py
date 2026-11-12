@@ -4,7 +4,6 @@ from django.utils import timezone
 
 from audit.models import AuditLog
 from challenges.models import Challenge
-
 from core.utils import get_client_ip, get_user_agent
 
 from .models import ConsentLog

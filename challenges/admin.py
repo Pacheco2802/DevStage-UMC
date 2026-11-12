@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import Challenge
-from .models import Submission
-from .models import Evaluation
+
+from .models import Challenge, Evaluation, Submission
+
 
 # Register your models here.
 @admin.register(Challenge)

@@ -1,14 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
 from django.db import transaction
-from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
 from audit.models import AuditLog
 from core.utils import get_client_ip
-from .forms import StudentSignupForm, CompanySignupForm, MyDataForm, CompanyDataForm
+
+from .forms import CompanyDataForm, CompanySignupForm, MyDataForm, StudentSignupForm
 from .services import anonymize_user, export_user_data, record_consent, revoke_consent
 
 # Create your views here.

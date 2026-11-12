@@ -2,9 +2,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+
 from accounts.models import CompanyProfile, ConsentLog
-from core.utils import get_client_ip
 from challenges.models import Challenge, Evaluation, Submission
+from core.utils import get_client_ip
+
 from .models import AuditLog
 
 User = get_user_model()
