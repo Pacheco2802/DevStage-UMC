@@ -28,3 +28,23 @@ class CompanyProfile(models.Model):
 
     def __str__(self):
         return self.company_name
+
+
+class ConsentLog(models.Model):
+    """Registro do aceite dos termos (LGPD art. 8º): quem aceitou, qual versão, quando e de onde."""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="consents",
+    )
+    terms_version = models.CharField(max_length=20)
+    accepted_at = models.DateTimeField(auto_now_add=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=300, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-accepted_at"]
+
+    def __str__(self):
+        return f"{self.user.username} - termos v{self.terms_version}"

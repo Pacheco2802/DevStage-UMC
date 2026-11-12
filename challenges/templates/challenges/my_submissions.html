@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Minhas submissões · DevStage{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-6 py-10">
+    <div class="mb-8">
+        <p class="mono text-xs uppercase tracking-widest text-[var(--muted-foreground)] mb-2">Estudante</p>
+        <div class="flex items-center justify-between gap-4">
+            <h1 class="text-3xl font-semibold">Minhas submissões</h1>
+            <a href="{% url 'portfolio:detail' user.username %}" class="text-sm text-[var(--neon)] hover:underline">Ver meu portfólio →</a>
+        </div>
+        <p class="text-sm text-[var(--muted-foreground)] mt-2">
+            {{ submissions|length }} solu{{ submissions|length|pluralize:"ção,ções" }} enviada{{ submissions|length|pluralize:"s" }}
+        </p>
+    </div>
+
+    {% if submissions %}
+    <div class="glow-border rounded-xl bg-[var(--card)] overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-left text-xs uppercase tracking-wider text-[var(--muted-foreground)] border-b border-[var(--border)]">
+                    <th class="px-5 py-3 font-medium">Desafio</th>
+                    <th class="px-5 py-3 font-medium">Empresa</th>
+                    <th class="px-5 py-3 font-medium">Enviado em</th>
+                    <th class="px-5 py-3 font-medium">Repositório</th>
+                    <th class="px-5 py-3 font-medium">Avaliação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for submission in submissions %}
+                <tr class="border-b border-[var(--border)] last:border-0">
+                    <td class="px-5 py-3">
+                        <a href="{% url 'challenges:detail' submission.challenge.pk %}" class="font-medium hover:text-[var(--neon)]">{{ submission.challenge.title }}</a>
+                    </td>
+                    <td class="px-5 py-3 text-[var(--muted-foreground)]">{{ submission.challenge.company.company_name }}</td>
+                    <td class="px-5 py-3 mono text-xs">{{ submission.submitted_at|date:"d/m/Y H:i" }}</td>
+                    <td class="px-5 py-3">
+                        <a href="{{ submission.repo_url }}" target="_blank" rel="noopener" class="mono text-xs text-[var(--neon)] hover:underline break-all">{{ submission.repo_url }}</a>
+                    </td>
+                    <td class="px-5 py-3">
+                        {% if submission.evaluation %}
+                        <details>
+                            <summary class="cursor-pointer"><span class="mono font-bold text-[var(--neon)]">{{ submission.evaluation.score }}</span><span class="mono text-xs text-[var(--muted-foreground)]">/10 · ver feedback</span></summary>
+                            <p class="mt-2 text-xs text-[var(--muted-foreground)] whitespace-pre-line max-w-xs">{{ submission.evaluation.feedback }}</p>
+                        </details>
+                        {% else %}
+                        <span class="mono text-xs text-[var(--muted-foreground)]">Aguardando</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="bg-[var(--card)] rounded-xl border border-[var(--border)] p-12 text-center">
+        <h3 class="font-bold text-lg mb-2">Você ainda não enviou nenhuma solução</h3>
+        <p class="text-[var(--muted-foreground)] text-sm mb-4">Escolha um desafio aberto e faça sua primeira entrega.</p>
+        <a href="{% url 'challenges:list' %}" class="text-[var(--neon)] hover:underline text-sm">Ver projetos disponíveis →</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

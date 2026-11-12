@@ -22,6 +22,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
     path("challenges/", include("challenges.urls")),
+    path("dashboard/", include("dashboard.urls")),
+    path("portfolio/", include("portfolio.urls")),
     path("", RedirectView.as_view(url="/challenges/", permanent=False)),
     path("", include("core.urls")),
 ]

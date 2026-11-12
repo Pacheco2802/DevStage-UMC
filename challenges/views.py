@@ -1,10 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.db.models import Count
+from django.http import Http404
 from django.utils import timezone
-from .forms import SubmissionForm, ChallengeForm
-from .models import Challenge, Submission
-from core.decorators import approved_company_required
+from .forms import SubmissionForm, ChallengeForm, EvaluationForm
+from .models import Challenge, Submission, Evaluation
+from core.decorators import approved_company_required, company_required, student_required
 
 @login_required
 def challenge_list(request):
@@ -15,6 +17,9 @@ def challenge_list(request):
 @login_required
 def challenge_detail(request, pk):
     challenge = get_object_or_404(Challenge, pk=pk)
+    # Rascunho ainda não foi publicado: só a empresa dona enxerga
+    if challenge.status == Challenge.Status.DRAFT and challenge.company.user_id != request.user.pk:
+        raise Http404
 
     user_submission = Submission.objects.filter(
         challenge=challenge, student=request.user
@@ -76,3 +81,83 @@ def challenge_create(request):
         form = ChallengeForm()
 
     return render(request, "challenges/create.html", {"form": form})
+
+
+# ---------- Painel da empresa ----------
+
+def _desafio_da_empresa(request, pk):
+    # Filtra pelo dono: desafio de outra empresa devolve 404, sem revelar que ele existe
+    return get_object_or_404(Challenge, pk=pk, company__user=request.user)
+
+
+@company_required
+def my_challenges(request):
+    challenges = (
+        Challenge.objects.filter(company__user=request.user)
+        .annotate(total_submissions=Count("submissions"))
+        .order_by("-created_at")
+    )
+    return render(request, "challenges/my_challenges.html", {"challenges": challenges})
+
+
+@approved_company_required
+def challenge_edit(request, pk):
+    challenge = _desafio_da_empresa(request, pk)
+    if request.method == "POST":
+        form = ChallengeForm(request.POST, instance=challenge)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Desafio atualizado.")
+            return redirect("challenges:mine")
+    else:
+        form = ChallengeForm(instance=challenge)
+
+    return render(request, "challenges/create.html", {"form": form, "challenge": challenge})
+
+
+@company_required
+def challenge_submissions(request, pk):
+    challenge = _desafio_da_empresa(request, pk)
+    submissions = challenge.submissions.select_related("student", "evaluation")
+    return render(
+        request,
+        "challenges/submissions.html",
+        {"challenge": challenge, "submissions": submissions},
+    )
+
+
+@approved_company_required
+def submission_evaluate(request, pk):
+    # Só a empresa dona do desafio avalia; submissão de outro desafio devolve 404
+    submission = get_object_or_404(
+        Submission.objects.select_related("challenge", "student"),
+        pk=pk,
+        challenge__company__user=request.user,
+    )
+    evaluation = Evaluation.objects.filter(submission=submission).first()
+
+    if request.method == "POST":
+        form = EvaluationForm(request.POST, instance=evaluation)
+        if form.is_valid():
+            evaluation = form.save(commit=False)
+            evaluation.submission = submission
+            evaluation.evaluated_by = request.user
+            evaluation.save()
+            messages.success(request, "Avaliação salva. O estudante já pode ver a nota e o feedback.")
+            return redirect("challenges:submissions", pk=submission.challenge.pk)
+    else:
+        form = EvaluationForm(instance=evaluation)
+
+    return render(
+        request,
+        "challenges/evaluate.html",
+        {"submission": submission, "form": form, "evaluation": evaluation},
+    )
+
+
+# ---------- Área do estudante ----------
+
+@student_required
+def my_submissions(request):
+    submissions = request.user.submissions.select_related("challenge__company", "evaluation")
+    return render(request, "challenges/my_submissions.html", {"submissions": submissions})

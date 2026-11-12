@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Portfólio de {{ estudante.username }} · DevStage{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-6 py-10">
+    <div class="flex items-center gap-4 mb-8">
+        <div class="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center">
+            <span class="mono text-white font-bold">{{ estudante.username|slice:":2"|upper }}</span>
+        </div>
+        <div>
+            <p class="mono text-xs uppercase tracking-widest text-[var(--muted-foreground)] mb-1">Portfólio</p>
+            <h1 class="text-3xl font-semibold">{{ estudante.get_full_name|default:estudante.username }}</h1>
+            <p class="mono text-xs text-[var(--muted-foreground)]">@{{ estudante.username }}</p>
+        </div>
+    </div>
+
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="glow-border rounded-xl bg-[var(--card)] p-5">
+            <p class="text-xs text-[var(--muted-foreground)] mb-2">Nota média</p>
+            <p class="mono text-4xl font-bold">{% if media is not None %}{{ media|floatformat:1 }}{% else %}—{% endif %}</p>
+        </div>
+        <div class="glow-border rounded-xl bg-[var(--card)] p-5">
+            <p class="text-xs text-[var(--muted-foreground)] mb-2">Posição no ranking</p>
+            <p class="mono text-4xl font-bold">{% if posicao %}{{ posicao }}º{% else %}—{% endif %}</p>
+        </div>
+        <div class="glow-border rounded-xl bg-[var(--card)] p-5">
+            <p class="text-xs text-[var(--muted-foreground)] mb-2">Projetos avaliados</p>
+            <p class="mono text-4xl font-bold">{{ avaliadas|length }}</p>
+        </div>
+        <div class="glow-border rounded-xl bg-[var(--card)] p-5">
+            <p class="text-xs text-[var(--muted-foreground)] mb-2">Submissões enviadas</p>
+            <p class="mono text-4xl font-bold">{{ total_submissoes }}</p>
+        </div>
+    </section>
+
+    <h2 class="font-semibold mb-4">Projetos avaliados</h2>
+    {% if avaliadas %}
+    <div class="grid md:grid-cols-2 gap-4">
+        {% for submission in avaliadas %}
+        <article class="glow-border rounded-xl bg-[var(--card)] p-5 flex flex-col">
+            <div class="flex items-start justify-between gap-3 mb-3">
+                <div>
+                    <h3 class="font-bold leading-snug">{{ submission.challenge.title }}</h3>
+                    <p class="text-xs text-[var(--muted-foreground)]">{{ submission.challenge.company.company_name }} · {{ submission.submitted_at|date:"d/m/Y" }}</p>
+                </div>
+                <div class="text-right whitespace-nowrap">
+                    <span class="mono text-2xl font-bold text-[var(--neon)]">{{ submission.evaluation.score }}</span><span class="mono text-xs text-[var(--muted-foreground)]">/10</span>
+                </div>
+            </div>
+            <p class="text-sm text-[var(--muted-foreground)] whitespace-pre-line flex-1">{{ submission.evaluation.feedback }}</p>
+            <div class="flex flex-wrap gap-x-5 mt-4 pt-3 border-t border-[var(--border)] text-xs">
+                <a href="{{ submission.repo_url }}" target="_blank" rel="noopener" class="mono text-[var(--neon)] hover:underline">Repositório ↗</a>
+                {% if submission.deploy_url %}
+                <a href="{{ submission.deploy_url }}" target="_blank" rel="noopener" class="mono text-[var(--muted-foreground)] hover:text-[var(--foreground)]">Deploy ↗</a>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-[var(--card)] rounded-xl border border-[var(--border)] p-12 text-center">
+        <h3 class="font-bold text-lg mb-2">Nenhum projeto avaliado ainda</h3>
+        <p class="text-[var(--muted-foreground)] text-sm">Os projetos aparecem aqui depois que a empresa dá a nota e o feedback.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
