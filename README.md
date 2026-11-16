@@ -1,6 +1,6 @@
-# DevStage — Plataforma de conexão entre empresas e estudantes
+# DevStage - Plataforma de conexão entre empresas e estudantes
 
-Projeto Final de Curso — Engenharia de Software, Universidade de Mogi das Cruzes (UMC).
+Projeto Final de Curso - Engenharia de Software, Universidade de Mogi das Cruzes (UMC).
 
 **Autor:** Pedro Henrique Prado Pacheco
 
