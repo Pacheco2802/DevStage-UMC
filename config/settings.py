@@ -185,3 +185,24 @@ STORAGES = {
 # Campos de URL assumem https:// quando o usuário não informa o esquema
 # (antecipa o padrão do Django 6.0 e silencia o RemovedInDjango60Warning)
 FORMS_URLFIELD_ASSUME_HTTPS = True
+
+
+# Logging
+# Com DEBUG=False o Django não imprime erros no console (por padrão só os envia por
+# e-mail aos ADMINS). Aqui tudo vai para o console, de onde o Railway captura os logs:
+# assim um erro 500 em produção aparece com o traceback completo nos Deploy Logs.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": env.str("DJANGO_LOG_LEVEL", default="INFO"),
+            "propagate": False,
+        },
+    },
+}
