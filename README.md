@@ -43,7 +43,7 @@ Empresa publica desafio → Estudante submete solução → Empresa avalia → P
 ### LGPD
 
 - Registro do **consentimento** no cadastro (versão dos termos aceita, data, IP e navegador) e possibilidade de **revogação**.
-- Página **Meus Dados**: visualização, **exportação** dos dados pessoais em JSON e **exclusão da conta por anonimização**: remove nome, e-mail e acesso do titular, mas mantém desafios e submissões para não quebrar dados de outros usuários; desafios abertos de uma empresa excluída são encerrados.
+- Página **Meus Dados** (direitos do art. 18): **acesso** aos dados, consentimentos e histórico de atividade; **correção** dos dados cadastrais; **portabilidade** com exportação em JSON; e **exclusão da conta por anonimização**: remove nome, e-mail e acesso do titular, mas mantém desafios e submissões para não quebrar dados de outros usuários; desafios abertos de uma empresa excluída são encerrados.
 - **Trilha de auditoria** (app `audit`): login, logout e criação/alteração/exclusão dos principais registros.
 - Termos de Uso, Política de Privacidade e contato do encarregado (DPO) acessíveis no rodapé.
 
