@@ -5,77 +5,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}DevStage{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230D1E29'/%3E%3Cpath d='M16 2 28 30H4z' fill='%23F6C453' fill-opacity='.28'/%3E%3Ccircle cx='16' cy='23' r='4.5' fill='%23F6C453'/%3E%3C/svg%3E">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Nomes de cor e fonte do tema, para usar como classes (bg-surface, text-muted, font-display...)
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stage: "var(--bg)", surface: "var(--surface)", deep: "var(--deep)", line: "var(--line)",
+                        fg: "var(--text)", muted: "var(--muted)", faint: "var(--faint)",
+                        light: "var(--light)", onlight: "var(--on-light)",
+                        ok: "var(--ok)", danger: "var(--danger)",
+                    },
+                    fontFamily: {
+                        sans: ["Figtree", "system-ui", "sans-serif"],
+                        display: ["Syne", "Figtree", "sans-serif"],
+                        mono: ["JetBrains Mono", "ui-monospace", "monospace"],
+                    },
+                },
+            },
+        };
+    </script>
     <script src="https://unpkg.com/htmx.org@2.0.3"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 
     <style>
+        /* ==========================================================
+           Tema "Palco": fundo azul-petróleo e uma única luz quente,
+           como um holofote. A luz (--light) é a cor de destaque.
+           ========================================================== */
         :root {
-            --background: #09090f;
-            --foreground: #e8e8f0;
-            --card: #111120;
-            --card-foreground: #e8e8f0;
-            --primary: #7c3aed;
-            --primary-foreground: #ffffff;
-            --secondary: #1a1a2e;
-            --secondary-foreground: #a0a0c0;
-            --muted: #16162a;
-            --muted-foreground: #6b6b8a;
-            --accent: #a855f7;
-            --border: #1e1e3a;
-            --ring: #7c3aed;
+            --bg: #0D1E29;
+            --surface: #132A38;
+            --deep: #0F2431;
+            --line: #234251;
+            --text: #E9F0F3;
+            --muted: #8FA8B4;
+            --faint: #5F7885;
 
-            --neon: #c084fc;
-            --neon-dim: rgba(192, 132, 252, 0.12);
-            --neon-glow: 0 0 24px rgba(168, 85, 247, 0.35);
-            --gold: #f59e0b;
-            --silver: #94a3b8;
-            --bronze: #cd7c2e;
-            --green: #22c55e;
-            --red: #ef4444;
-            --cyan: #06b6d4;
+            --light: #F6C453;
+            --light-hi: #FFDD8A;
+            --light-soft: rgba(246, 196, 83, 0.09);
+            --light-line: rgba(246, 196, 83, 0.45);
+            --on-light: #1A1405;
+
+            --ok: #5FD3A2;
+            --ok-soft: rgba(95, 211, 162, 0.08);
+            --ok-line: rgba(95, 211, 162, 0.35);
+            --danger: #FF8370;
+            --danger-soft: rgba(255, 131, 112, 0.08);
+            --danger-line: rgba(255, 131, 112, 0.38);
+
+            color-scheme: dark;
         }
 
-        * { scrollbar-width: thin; scrollbar-color: #1e1e3a transparent; }
-        *::-webkit-scrollbar { width: 4px; height: 4px; }
-        *::-webkit-scrollbar-track { background: transparent; }
-        *::-webkit-scrollbar-thumb { background: #1e1e3a; border-radius: 4px; }
-        *::-webkit-scrollbar-thumb:hover { background: #2d2d52; }
-
+        * { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+        html { background: var(--bg); }
         body {
-            background-color: var(--background);
-            color: var(--foreground);
-            font-family: 'Outfit', system-ui, sans-serif;
+            /* o holofote: uma elipse de luz que desce do topo da página */
+            background:
+                radial-gradient(ellipse 780px 900px at 50% -180px,
+                    rgba(246, 196, 83, 0.20), rgba(246, 196, 83, 0.05) 46%, transparent 70%) no-repeat,
+                var(--bg);
+            color: var(--text);
+            font-family: 'Figtree', system-ui, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
-
-        .mono { font-family: 'JetBrains Mono', monospace; }
-
-        .glow-border {
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.1) inset;
-            transition: all 0.2s ease;
-        }
-        .glow-border:hover {
-            border-color: rgba(168, 85, 247, 0.6);
-            box-shadow: var(--neon-glow);
-        }
-
-        .neon-text {
-            color: var(--neon);
-            text-shadow: 0 0 12px rgba(192, 132, 252, 0.5);
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+        ::selection { background: var(--light); color: var(--on-light); }
+        :focus-visible { outline: 2px solid var(--light); outline-offset: 2px; }
+        [x-cloak] { display: none !important; }
 
         @keyframes fade-in {
             from { opacity: 0; transform: translateY(8px); }
@@ -83,110 +87,235 @@
         }
         .fade-in { animation: fade-in 0.4s ease both; }
 
-        .grid-bg {
-            background-image:
-                linear-gradient(rgba(126, 58, 237, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(126, 58, 237, 0.04) 1px, transparent 1px);
-            background-size: 40px 40px;
+        /* ---------- Navegação ---------- */
+        .nav-link { position: relative; padding: 6px 2px; font-size: 14px; font-weight: 500; color: var(--muted); transition: color 0.15s; white-space: nowrap; }
+        .nav-link:hover { color: var(--text); }
+        .nav-link.is-on { color: var(--text); }
+        .nav-link.is-on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; border-radius: 2px; background: var(--light); }
+
+        /* ---------- Cartões ---------- */
+        .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; }
+        .card-link { transition: border-color 0.2s, transform 0.2s; }
+        .card-link:hover { border-color: var(--light); transform: translateY(-3px); }
+        .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+        .link { color: var(--light); }
+        .link:hover { text-decoration: underline; }
+
+        /* ---------- Botões simples ---------- */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 20px; border-radius: 999px; font-size: 14px; font-weight: 700; background: var(--light); color: var(--on-light); transition: filter 0.15s; white-space: nowrap; }
+        .btn:hover { filter: brightness(1.07); }
+        .btn-ghost { display: inline-flex; align-items: center; justify-content: center; padding: 8px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); transition: color 0.15s, border-color 0.15s; white-space: nowrap; }
+        .btn-ghost:hover { color: var(--text); border-color: var(--light-line); }
+        .btn-danger { display: inline-flex; align-items: center; justify-content: center; padding: 8px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--danger); border: 1px solid var(--danger-line); transition: background 0.15s; }
+        .btn-danger:hover { background: var(--danger-soft); }
+        .btn-danger-solid { display: inline-flex; align-items: center; justify-content: center; padding: 9px 20px; border-radius: 999px; font-size: 14px; font-weight: 700; background: var(--danger); color: #2A0B05; }
+
+        /* ---------- Botão principal ----------
+           Adaptado de Uiverse.io, por gharsh11032000 (licença MIT):
+           https://uiverse.io/gharsh11032000/loud-chicken-53
+           Mudanças: já nasce preenchido com a cor da luz e o círculo cobre botões largos. */
+        .btn-stage {
+            position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+            padding: 12px 40px; border: 0; border-radius: 100px;
+            font-size: 15px; font-weight: 700; background: var(--light); color: var(--on-light);
+            cursor: pointer; overflow: hidden;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .btn-stage svg { position: absolute; width: 20px; fill: var(--on-light); z-index: 9; transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1); }
+        .btn-stage .arr-1 { right: 16px; }
+        .btn-stage .arr-2 { left: -25%; }
+        .btn-stage .circle {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 20px; aspect-ratio: 1; background: var(--light-hi); border-radius: 50%; opacity: 0;
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .btn-stage .text { position: relative; z-index: 1; transform: translateX(-10px); transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1); }
+        .btn-stage:hover { border-radius: 12px; }
+        .btn-stage:hover .arr-1 { right: -25%; }
+        .btn-stage:hover .arr-2 { left: 16px; }
+        .btn-stage:hover .text { transform: translateX(10px); }
+        .btn-stage:hover .circle { width: 115%; opacity: 1; }
+        .btn-stage:active { scale: 0.97; }
+
+        /* ---------- Campos de formulário ---------- */
+        .label { display: block; margin-bottom: 7px; font-size: 13px; font-weight: 600; }
+        .input {
+            width: 100%; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 12px;
+            background: var(--deep); color: var(--text); font-size: 14px;
+            transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .input::placeholder { color: var(--faint); }
+        .input:focus { outline: none; border-color: var(--light); }
+        .help { margin-top: 6px; font-size: 12px; color: var(--muted); }
+        .help ul { list-style: disc; padding-left: 1.1em; }
+        .err { margin-top: 6px; font-size: 12px; color: var(--danger); }
+
+        /* Campo com rótulo flutuante (telas de entrada e cadastro).
+           Adaptado de Uiverse.io, por alexruix (licença MIT):
+           https://uiverse.io/alexruix/slippery-snail-18
+           Mudança: usa :placeholder-shown no lugar de :valid, para o rótulo subir com qualquer texto digitado. */
+        .field { position: relative; }
+        .field-input {
+            width: 100%; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 14px;
+            background: var(--deep); color: var(--text); font-size: 15px;
+            transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .field-label {
+            position: absolute; left: 13px; top: 0; padding: 0 0.3em; color: var(--muted); pointer-events: none;
+            transform: translateY(14px); transform-origin: left center;
+            transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .field-input:focus { outline: none; border-color: var(--light); }
+        .field-input:focus ~ .field-label,
+        .field-input:not(:placeholder-shown) ~ .field-label,
+        .field-input:-webkit-autofill ~ .field-label {
+            transform: translateY(-50%) scale(0.8);
+            background: var(--surface);
+        }
+        .field-input:focus ~ .field-label { color: var(--light); }
+        .input:-webkit-autofill, .field-input:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0 1000px var(--deep) inset;
+            -webkit-text-fill-color: var(--text);
+            caret-color: var(--text);
         }
 
-        input:focus, textarea:focus, select:focus { outline: none; }
-        [x-cloak] { display: none !important; }
+        /* Caixa de seleção com traço animado.
+           Adaptado de Uiverse.io, por mrhyddenn (licença MIT):
+           https://uiverse.io/mrhyddenn/slippery-bear-64
+           Mudança: o input fica invisível em vez de removido, para manter teclado e validação "required". */
+        .cbx { position: relative; display: inline-flex; flex-shrink: 0; width: 18px; height: 18px; margin-top: 2px; }
+        .cbx input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 2; }
+        .cbx .check { position: relative; width: 18px; height: 18px; -webkit-tap-highlight-color: transparent; transform: translate3d(0, 0, 0); }
+        .cbx .check:before { content: ""; position: absolute; top: -15px; left: -15px; width: 48px; height: 48px; border-radius: 50%; background: rgba(246, 196, 83, 0.08); opacity: 0; transition: opacity 0.2s ease; }
+        .cbx .check svg { position: relative; z-index: 1; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke: var(--muted); stroke-width: 1.5; transform: translate3d(0, 0, 0); transition: all 0.2s ease; }
+        .cbx .check svg path { stroke-dasharray: 60; stroke-dashoffset: 0; }
+        .cbx .check svg polyline { stroke-dasharray: 22; stroke-dashoffset: 66; }
+        .cbx:hover .check:before { opacity: 1; }
+        .cbx:hover .check svg { stroke: var(--light); }
+        .cbx input:checked + .check svg { stroke: var(--light); }
+        .cbx input:checked + .check svg path { stroke-dashoffset: 60; transition: all 0.3s linear; }
+        .cbx input:checked + .check svg polyline { stroke-dashoffset: 42; transition: all 0.2s linear; transition-delay: 0.15s; }
+        .cbx input:focus-visible + .check { outline: 2px solid var(--light); outline-offset: 3px; border-radius: 4px; }
+
+        /* Seletor de opções com marcador deslizante.
+           Adaptado de Uiverse.io, por chase2k25 (licença MIT):
+           https://uiverse.io/chase2k25/slimy-chipmunk-97
+           Mudanças: aceita 2 ou 3 opções (--n), uma cor só e inputs acessíveis pelo teclado. */
+        .seg {
+            --n: 3;
+            display: flex; position: relative; width: fit-content; max-width: 100%;
+            background: rgba(255, 255, 255, 0.05); border-radius: 999px; overflow: hidden;
+            box-shadow: inset 1px 1px 4px rgba(255, 255, 255, 0.12), inset -1px -1px 6px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .seg input { position: absolute; opacity: 0; pointer-events: none; }
+        .seg label {
+            flex: 1 1 0; display: flex; align-items: center; justify-content: center;
+            min-width: 92px; padding: 9px 18px; font-size: 13.5px; font-weight: 600; letter-spacing: 0.2px;
+            color: var(--muted); cursor: pointer; position: relative; z-index: 2; white-space: nowrap;
+            transition: color 0.3s ease-in-out;
+        }
+        .seg label:hover { color: var(--text); }
+        .seg input:checked + label { color: var(--on-light); }
+        .seg input:focus-visible + label { outline: 2px solid var(--light); outline-offset: -3px; border-radius: 999px; }
+        .seg-glider {
+            position: absolute; top: 0; bottom: 0; left: 0; width: calc(100% / var(--n)); border-radius: 999px; z-index: 1;
+            background: linear-gradient(135deg, rgba(246, 196, 83, 0.75), var(--light));
+            box-shadow: 0 0 18px rgba(246, 196, 83, 0.45), 0 0 10px rgba(255, 235, 150, 0.4) inset;
+            transition: transform 0.5s cubic-bezier(0.37, 1.95, 0.66, 0.56);
+        }
+        .seg input:nth-of-type(1):checked ~ .seg-glider { transform: translateX(0%); }
+        .seg input:nth-of-type(2):checked ~ .seg-glider { transform: translateX(100%); }
+        .seg input:nth-of-type(3):checked ~ .seg-glider { transform: translateX(200%); }
+
+        /* Indicador de carregamento com palavras que giram.
+           Adaptado de Uiverse.io, por kennyotsu (licença MIT):
+           https://uiverse.io/kennyotsu/fresh-lizard-20 */
+        .loader-words { --bg-color: var(--surface); display: flex; height: 34px; font-size: 20px; font-weight: 500; line-height: 34px; color: var(--muted); }
+        .loader-words .words { overflow: hidden; position: relative; }
+        .loader-words .words::after {
+            content: ""; position: absolute; inset: 0; z-index: 20;
+            background: linear-gradient(var(--bg-color) 10%, transparent 30%, transparent 70%, var(--bg-color) 90%);
+        }
+        .loader-words .word { display: block; height: 100%; padding-left: 6px; color: var(--light); animation: spin-words 4s infinite; }
+        @keyframes spin-words {
+            10% { transform: translateY(-102%); }
+            25% { transform: translateY(-100%); }
+            35% { transform: translateY(-202%); }
+            50% { transform: translateY(-200%); }
+            60% { transform: translateY(-302%); }
+            75% { transform: translateY(-300%); }
+            85% { transform: translateY(-402%); }
+            100% { transform: translateY(-400%); }
+        }
+
+        /* ---------- Tabelas ---------- */
+        .tbl { width: 100%; font-size: 14px; }
+        .tbl th { padding: 12px 20px; text-align: left; font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+        .tbl td { padding: 12px 20px; border-top: 1px solid var(--line); }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+        }
     </style>
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen flex flex-col">
 
     {% if user.is_authenticated %}
-    <header class="fixed top-0 left-0 right-0 z-50 border-b border-[var(--border)] bg-[rgba(9,9,15,0.85)] backdrop-blur-xl">
-        <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-14">
-            <a href="{% url 'challenges:list' %}" class="flex items-center gap-2 group">
-                <div class="w-7 h-7 rounded bg-[var(--primary)] flex items-center justify-center">
-                    <span class="mono text-white font-bold text-xs">DS</span>
-                </div>
-                <span class="font-semibold text-sm tracking-wide">
-                    Dev<span class="text-[var(--neon)]">Stage</span>
-                </span>
-            </a>
+    <header class="fixed top-0 left-0 right-0 z-50 border-b border-line bg-[rgba(13,30,41,0.78)] backdrop-blur-xl"
+            x-data="{ menu: false }" @keydown.escape.window="menu = false">
+        <div class="max-w-7xl mx-auto px-6 flex items-center gap-8 h-[60px]">
+            <a href="{% url 'challenges:list' %}" class="font-display font-extrabold text-lg shrink-0">Dev<span class="text-light">Stage</span></a>
 
-            <nav class="flex items-center gap-1">
-                <a href="{% url 'challenges:list' %}"
-                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
-                          {% if request.resolver_match.url_name == 'list' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
-                    Projetos
-                </a>
-                <a href="{% url 'dashboard:index' %}"
-                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
-                          {% if request.resolver_match.app_name == 'dashboard' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
-                    Dashboard
-                </a>
-                <a href="{% url 'portfolio:ranking' %}"
-                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
-                          {% if request.resolver_match.app_name == 'portfolio' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
-                    Ranking
-                </a>
-                {% if user.role == 'STUDENT' and not user.is_superuser %}
-                <a href="{% url 'challenges:my_submissions' %}"
-                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
-                          {% if request.resolver_match.url_name == 'my_submissions' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
-                    Minhas submissões
-                </a>
-                {% endif %}
-                {% if user.role == 'COMPANY' %}
-                <a href="{% url 'challenges:mine' %}"
-                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
-                          {% if request.resolver_match.url_name == 'mine' or request.resolver_match.url_name == 'submissions' or request.resolver_match.url_name == 'edit' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
-                    Meus desafios
-                </a>
-                {% endif %}
-                {% if user.role == 'COMPANY' and user.company_profile.approved %}
-                <a href="{% url 'challenges:create' %}"
-                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
-                          {% if request.resolver_match.url_name == 'create' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
-                    Novo desafio
-                </a>
-                {% endif %}
+            <nav class="hidden lg:flex items-center gap-6 flex-1" aria-label="Principal">
+                {% include "components/nav_links.html" %}
             </nav>
 
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-2 px-3 py-1.5 rounded border border-[var(--border)]">
-                    <div class="w-6 h-6 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center">
-                        <span class="mono text-white font-bold text-[10px]">
-                            {{ user.username|slice:":2"|upper }}
-                        </span>
+            <div class="hidden lg:flex items-center gap-5 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-7 h-7 rounded-full bg-deep border border-line flex items-center justify-center">
+                        <span class="font-mono font-semibold text-[10px] text-light">{{ user.username|slice:":2"|upper }}</span>
                     </div>
-                    <span class="text-sm font-medium">{{ user.username }}</span>
-                    <span class="mono text-[10px] uppercase tracking-widest text-[var(--muted-foreground)]">
-                        {% if user.is_superuser %}Administrador{% else %}{{ user.get_role_display }}{% endif %}
-                    </span>
+                    <div class="leading-tight">
+                        <div class="text-sm font-semibold">{{ user.username }}</div>
+                        <div class="text-[11px] text-muted">{% if user.is_superuser %}Administrador{% else %}{{ user.get_role_display }}{% endif %}</div>
+                    </div>
                 </div>
-                <a href="{% url 'my_data' %}"
-                   class="px-3 py-1.5 rounded text-sm font-medium transition-all
-                          {% if request.resolver_match.url_name == 'my_data' %}bg-[var(--primary)] text-white{% else %}text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]{% endif %}">
-                    Meus dados
-                </a>
+                <a href="{% url 'my_data' %}" class="nav-link {% if request.resolver_match.url_name == 'my_data' %}is-on{% endif %}">Meus dados</a>
                 <form method="post" action="{% url 'logout' %}" class="inline">
                     {% csrf_token %}
-                    <button type="submit"
-                            class="px-3 py-1.5 rounded text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--red)] hover:bg-[var(--muted)] transition-all">
-                        Sair
-                    </button>
+                    <button type="submit" class="text-sm font-medium text-muted hover:text-danger transition-colors">Sair</button>
+                </form>
+            </div>
+
+            <button type="button" class="lg:hidden ml-auto btn-ghost" @click="menu = !menu" :aria-expanded="menu" aria-controls="menu-movel">Menu</button>
+        </div>
+
+        <div id="menu-movel" class="lg:hidden border-t border-line px-6 py-4" x-show="menu" x-cloak @click.outside="menu = false">
+            <nav class="flex flex-col items-start gap-2" aria-label="Principal">
+                {% include "components/nav_links.html" %}
+                <a href="{% url 'my_data' %}" class="nav-link {% if request.resolver_match.url_name == 'my_data' %}is-on{% endif %}">Meus dados</a>
+            </nav>
+            <div class="mt-4 pt-4 border-t border-line flex items-center justify-between text-sm">
+                <span><span class="font-semibold">{{ user.username }}</span> <span class="text-muted">· {% if user.is_superuser %}Administrador{% else %}{{ user.get_role_display }}{% endif %}</span></span>
+                <form method="post" action="{% url 'logout' %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="font-medium text-muted hover:text-danger transition-colors">Sair</button>
                 </form>
             </div>
         </div>
     </header>
     {% endif %}
 
-    <main class="{% if user.is_authenticated %}pt-14{% endif %}">
+    <main class="flex-1 {% if user.is_authenticated %}pt-[60px]{% endif %}">
         {% if messages %}
         <div class="max-w-7xl mx-auto px-6 pt-6 space-y-2">
             {% for message in messages %}
-            <div class="fade-in px-4 py-3 rounded-lg border
-                        {% if message.tags == 'error' %}bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.3)] text-[var(--red)]
-                        {% elif message.tags == 'success' %}bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.3)] text-[var(--green)]
-                        {% else %}bg-[var(--neon-dim)] border-[rgba(192,132,252,0.25)] text-[var(--neon)]{% endif %}
-                        text-sm">
+            <div class="fade-in px-4 py-3 rounded-xl border text-sm
+                        {% if message.tags == 'error' %}bg-[var(--danger-soft)] border-[var(--danger-line)] text-danger
+                        {% elif message.tags == 'success' %}bg-[var(--ok-soft)] border-[var(--ok-line)] text-ok
+                        {% else %}bg-[var(--light-soft)] border-[var(--light-line)] text-light{% endif %}">
                 {{ message }}
             </div>
             {% endfor %}
@@ -196,13 +325,13 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="border-t border-[var(--border)] mt-16">
-        <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--muted-foreground)]">
+    <footer class="border-t border-line mt-16">
+        <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted">
             <span>© 2026 DevStage · Projeto acadêmico UMC</span>
-            <nav class="flex items-center gap-5">
-                <a href="{% url 'core:terms' %}" class="hover:text-[var(--neon)] transition-colors">Termos de Uso</a>
-                <a href="{% url 'core:privacy' %}" class="hover:text-[var(--neon)] transition-colors">Política de Privacidade</a>
-                <a href="mailto:{{ DPO_EMAIL }}" class="hover:text-[var(--neon)] transition-colors">Encarregado (DPO): {{ DPO_EMAIL }}</a>
+            <nav class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1" aria-label="Rodapé">
+                <a href="{% url 'core:terms' %}" class="hover:text-light transition-colors">Termos de Uso</a>
+                <a href="{% url 'core:privacy' %}" class="hover:text-light transition-colors">Política de Privacidade</a>
+                <a href="mailto:{{ DPO_EMAIL }}" class="hover:text-light transition-colors">Encarregado (DPO): {{ DPO_EMAIL }}</a>
             </nav>
         </div>
     </footer>

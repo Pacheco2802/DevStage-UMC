@@ -2,74 +2,65 @@
 {% block title %}Avaliar submissão · DevStage{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto px-6 py-10">
+<div class="max-w-3xl mx-auto px-6 py-12">
     <a href="{% url 'challenges:submissions' submission.challenge.pk %}"
-       class="flex items-center gap-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-sm mb-6 transition-colors">
+       class="inline-block text-muted hover:text-fg text-sm mb-8 transition-colors">
         ← Voltar para as submissões
     </a>
 
     <div class="mb-8">
-        <p class="mono text-xs uppercase tracking-widest text-[var(--muted-foreground)] mb-2">
+        <p class="eyebrow mb-3">
             {{ submission.challenge.title }} · {% if evaluation %}Editar avaliação{% else %}Nova avaliação{% endif %}
         </p>
-        <h1 class="text-3xl font-semibold">{{ submission.student.get_full_name|default:submission.student.username }}</h1>
-        <p class="text-sm text-[var(--muted-foreground)] mt-2">
-            Enviado em <span class="mono">{{ submission.submitted_at|date:"d/m/Y H:i" }}</span>
+        <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1]">{{ submission.student.get_full_name|default:submission.student.username }}</h1>
+        <p class="text-sm text-muted mt-3">
+            Enviado em <span class="font-mono">{{ submission.submitted_at|date:"d/m/Y H:i" }}</span>
         </p>
     </div>
 
-    <div class="glow-border rounded-xl bg-[var(--card)] p-5 mb-6 space-y-3">
+    <div class="card p-5 mb-6 space-y-3">
         <div class="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-            <a href="{{ submission.repo_url }}" target="_blank" rel="noopener" class="mono text-[var(--neon)] hover:underline break-all">{{ submission.repo_url }}</a>
+            <a href="{{ submission.repo_url }}" target="_blank" rel="noopener" class="font-mono link break-all">{{ submission.repo_url }}</a>
             {% if submission.deploy_url %}
-            <a href="{{ submission.deploy_url }}" target="_blank" rel="noopener" class="mono text-[var(--muted-foreground)] hover:text-[var(--foreground)] break-all">Deploy ↗</a>
+            <a href="{{ submission.deploy_url }}" target="_blank" rel="noopener" class="font-mono text-muted hover:text-fg break-all">Deploy ↗</a>
             {% endif %}
         </div>
-        <p class="text-sm text-[var(--muted-foreground)] whitespace-pre-line">{{ submission.description }}</p>
+        <p class="text-sm text-muted whitespace-pre-line">{{ submission.description }}</p>
     </div>
 
-    <form method="post" class="glow-border rounded-xl p-6 bg-[var(--card)] space-y-5">
+    <form method="post" class="card p-6 sm:p-8 space-y-5">
         {% csrf_token %}
 
         <div>
-            <label for="{{ form.score.id_for_label }}"
-                   class="block mb-1.5 text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">
-                {{ form.score.label }}
-            </label>
+            <label for="{{ form.score.id_for_label }}" class="label">{{ form.score.label }}</label>
             <input type="number" name="{{ form.score.name }}" id="{{ form.score.id_for_label }}"
                    min="0" max="10" required value="{{ form.score.value|default_if_none:'' }}"
-                   class="w-32 px-3 py-2 rounded bg-[var(--secondary)] border border-[var(--border)] text-sm mono focus:border-[var(--primary)] transition-colors">
+                   class="input font-mono !w-32 text-lg">
             {% for error in form.score.errors %}
-            <p class="mt-1 text-xs text-[var(--red)]">{{ error }}</p>
+            <p class="err">{{ error }}</p>
             {% endfor %}
         </div>
 
         <div>
-            <label for="{{ form.feedback.id_for_label }}"
-                   class="block mb-1.5 text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">
-                {{ form.feedback.label }}
-            </label>
+            <label for="{{ form.feedback.id_for_label }}" class="label">{{ form.feedback.label }}</label>
             <textarea name="{{ form.feedback.name }}" id="{{ form.feedback.id_for_label }}" rows="6" required
                       placeholder="Pontos fortes, o que pode melhorar, decisões técnicas…"
-                      class="w-full px-3 py-2 rounded bg-[var(--secondary)] border border-[var(--border)] text-sm focus:border-[var(--primary)] transition-colors">{{ form.feedback.value|default_if_none:'' }}</textarea>
+                      class="input">{{ form.feedback.value|default_if_none:'' }}</textarea>
             {% for error in form.feedback.errors %}
-            <p class="mt-1 text-xs text-[var(--red)]">{{ error }}</p>
+            <p class="err">{{ error }}</p>
             {% endfor %}
         </div>
 
         {% for error in form.non_field_errors %}
-        <p class="text-xs text-[var(--red)]">{{ error }}</p>
+        <p class="err">{{ error }}</p>
         {% endfor %}
 
-        <div class="flex items-center justify-end gap-3 pt-2">
+        <div class="flex items-center justify-end gap-4 pt-2">
             <a href="{% url 'challenges:submissions' submission.challenge.pk %}"
-               class="px-4 py-2 rounded text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+               class="text-sm font-medium text-muted hover:text-fg transition-colors">
                 Cancelar
             </a>
-            <button type="submit"
-                    class="px-5 py-2 rounded bg-[var(--primary)] hover:bg-[var(--accent)] text-white font-medium text-sm transition-colors">
-                Salvar avaliação
-            </button>
+            {% include "components/cta.html" with label="Salvar avaliação" %}
         </div>
     </form>
 </div>

@@ -1,6 +1,5 @@
-<span class="mono text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap
-    {% if status == 'OPEN' %}text-[var(--green)] bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.25)]
-    {% elif status == 'CLOSED' %}text-[var(--red)] bg-[rgba(239,68,68,0.08)] border-[rgba(239,68,68,0.25)]
-    {% else %}text-[var(--muted-foreground)] bg-[var(--muted)] border-[var(--border)]{% endif %}">
+<span class="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.06em] whitespace-nowrap
+    {% if status == 'OPEN' %}text-light{% elif status == 'CLOSED' %}text-danger{% else %}text-muted{% endif %}">
+    <span class="w-[7px] h-[7px] rounded-full bg-current" aria-hidden="true"></span>
     {{ label|upper }}
 </span>

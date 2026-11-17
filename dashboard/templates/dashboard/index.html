@@ -2,42 +2,56 @@
 {% block title %}Dashboard · DevStage{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-6 py-10 space-y-8">
+<div class="max-w-7xl mx-auto px-6 py-12 space-y-8">
 
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
         <div>
-            <p class="mono text-xs uppercase tracking-widest text-[var(--muted-foreground)] mb-2">
+            <p class="eyebrow mb-3">
                 {% if data.perfil == "ADMIN" %}Visão geral da plataforma
                 {% elif data.perfil == "COMPANY" %}Seus desafios
                 {% else %}Sua participação{% endif %}
             </p>
-            <h1 class="text-3xl font-semibold">Dashboard</h1>
+            <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1]">Dashboard</h1>
         </div>
-        <p class="text-xs text-[var(--muted-foreground)]">Atualizado em {% now "d/m/Y H:i" %}</p>
+        <p class="font-mono text-xs text-muted">Atualizado em {% now "d/m/Y H:i" %}</p>
     </div>
 
     {# ---------- Big Numbers ---------- #}
     <section class="grid grid-cols-2 lg:grid-cols-{{ data.big_numbers|length }} gap-4">
         {% for item in data.big_numbers %}
-        <div class="glow-border rounded-xl bg-[var(--card)] p-5">
-            <p class="text-xs text-[var(--muted-foreground)] mb-2">{{ item.rotulo }}</p>
-            <p class="mono text-4xl font-bold text-[var(--foreground)]">{{ item.valor|default_if_none:"—" }}</p>
+        <div class="card p-5">
+            <p class="text-xs text-muted mb-2">{{ item.rotulo }}</p>
+            <p class="font-mono text-4xl font-semibold {% if forloop.first %}text-light{% endif %}">{{ item.valor|default_if_none:"—" }}</p>
         </div>
         {% endfor %}
     </section>
 
     {# ---------- Gráficos ---------- #}
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-3 glow-border rounded-xl bg-[var(--card)] p-5">
-            <h2 class="font-semibold text-sm mb-1">Submissões por dia</h2>
-            <p class="text-xs text-[var(--muted-foreground)] mb-4">Últimos 30 dias</p>
-            <div class="h-64"><canvas id="chart-submissoes" aria-label="Gráfico de submissões por dia" role="img"></canvas></div>
+        <div class="lg:col-span-3 card p-5">
+            <h2 class="font-display font-bold text-[15px] mb-1">Submissões por dia</h2>
+            <p class="text-xs text-muted mb-4">Últimos 30 dias</p>
+            <div class="h-64 relative">
+                <canvas id="chart-submissoes" aria-label="Gráfico de submissões por dia" role="img"></canvas>
+                <div id="chart-loading" class="absolute inset-0 flex items-center justify-center bg-surface" role="status">
+                    <div class="loader-words">
+                        <span>carregando</span>
+                        <div class="words" aria-hidden="true">
+                            <span class="word">submissões</span>
+                            <span class="word">desafios</span>
+                            <span class="word">avaliações</span>
+                            <span class="word">gráficos</span>
+                            <span class="word">submissões</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% include "dashboard/_tabela.html" with serie=data.submissoes_por_dia coluna="Dia" %}
         </div>
 
-        <div class="{% if data.top_desafios %}lg:col-span-1{% else %}lg:col-span-3{% endif %} glow-border rounded-xl bg-[var(--card)] p-5">
-            <h2 class="font-semibold text-sm mb-1">Desafios por status</h2>
-            <p class="text-xs text-[var(--muted-foreground)] mb-4">
+        <div class="{% if data.top_desafios %}lg:col-span-1{% else %}lg:col-span-3{% endif %} card p-5">
+            <h2 class="font-display font-bold text-[15px] mb-1">Desafios por status</h2>
+            <p class="text-xs text-muted mb-4">
                 {% if data.perfil == "STUDENT" %}Desafios em que você submeteu{% else %}Quantidade de desafios{% endif %}
             </p>
             <div class="h-56"><canvas id="chart-status" aria-label="Gráfico de desafios por status" role="img"></canvas></div>
@@ -45,9 +59,9 @@
         </div>
 
         {% if data.top_desafios %}
-        <div class="lg:col-span-2 glow-border rounded-xl bg-[var(--card)] p-5">
-            <h2 class="font-semibold text-sm mb-1">Desafios com mais submissões</h2>
-            <p class="text-xs text-[var(--muted-foreground)] mb-4">Top 5</p>
+        <div class="lg:col-span-2 card p-5">
+            <h2 class="font-display font-bold text-[15px] mb-1">Desafios com mais submissões</h2>
+            <p class="text-xs text-muted mb-4">Top 5</p>
             <div class="h-56"><canvas id="chart-top" aria-label="Gráfico dos desafios com mais submissões" role="img"></canvas></div>
             {% include "dashboard/_tabela.html" with serie=data.top_desafios coluna="Desafio" %}
         </div>
@@ -59,20 +73,20 @@
 {% block extra_scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-    // Uma série por gráfico: uma cor só (#a855f7, validada contra o fundo do card), sem legenda.
-    const COR = "#a855f7";
-    const GRADE = "#1e1e3a";
-    const TEXTO = "#6b6b8a";
+    // Uma série por gráfico: uma cor só (a "luz" do tema, #F6C453, sobre o fundo do cartão), sem legenda.
+    const COR = "#F6C453";
+    const GRADE = "#234251";
+    const TEXTO = "#8FA8B4";
 
     Chart.defaults.color = TEXTO;
-    Chart.defaults.font.family = "'Outfit', system-ui, sans-serif";
+    Chart.defaults.font.family = "'Figtree', system-ui, sans-serif";
 
     const base = (extra = {}) => ({
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
             legend: { display: false },
-            tooltip: { backgroundColor: "#16162a", borderColor: GRADE, borderWidth: 1, titleColor: "#e8e8f0", bodyColor: "#e8e8f0", padding: 10, displayColors: false },
+            tooltip: { backgroundColor: "#0F2431", borderColor: GRADE, borderWidth: 1, titleColor: "#E9F0F3", bodyColor: "#E9F0F3", padding: 10, displayColors: false },
         },
         ...extra,
     });
@@ -82,9 +96,16 @@
     const labels = (serie) => serie.map((p) => p.label);
     const valores = (serie) => serie.map((p) => p.valor);
 
+    const carregando = document.getElementById("chart-loading");
+
     fetch("{% url 'dashboard:api_dados' %}", { credentials: "same-origin" })
-        .then((r) => r.json())
+        .then((r) => {
+            if (!r.ok) throw new Error("Resposta " + r.status);
+            return r.json();
+        })
         .then((data) => {
+            carregando.remove();
+
             new Chart(document.getElementById("chart-submissoes"), {
                 type: "bar",
                 data: { labels: labels(data.submissoes_por_dia), datasets: [{ label: "Submissões", data: valores(data.submissoes_por_dia), backgroundColor: COR, borderRadius: 4, maxBarThickness: 18 }] },
@@ -105,6 +126,9 @@
                     options: base({ indexAxis: "y", scales: { x: eixoValor, y: { ...eixoCategoria, border: { display: false } } } }),
                 });
             }
+        })
+        .catch(() => {
+            carregando.innerHTML = '<p class="text-sm text-muted text-center px-6">Não foi possível carregar os gráficos. Recarregue a página ou abra "Ver dados em tabela" abaixo.</p>';
         });
 </script>
 {% endblock %}
