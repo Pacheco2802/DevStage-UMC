@@ -1,0 +1,24 @@
+{% comment %}
+Uma linha da tabela do ranking. Recebe: aluno, pos (posição) e podio (True quando o pódio
+já mostra os 3 primeiros — nesse caso a linha deles só aparece durante uma busca).
+{% endcomment %}
+<tr data-k="{{ aluno.get_full_name|lower }} {{ aluno.username|lower }}"
+    {% if aluno.pk == user.pk %}data-me{% endif %}
+    x-show="{% if podio and pos <= 3 %}termo &amp;&amp; {% endif %}hit($el.dataset.k)"
+    class="{% if aluno.pk == user.pk %}bg-[var(--light-soft)] shadow-[inset_3px_0_0_var(--light)]{% endif %}">
+    <td class="font-mono font-semibold w-16 {% if pos <= 3 %}text-light{% else %}text-muted{% endif %}">{{ pos }}º</td>
+    <td>
+        <a href="{% url 'portfolio:detail' aluno.username %}" class="font-semibold hover:text-light transition-colors">{{ aluno.get_full_name|default:aluno.username }}</a>
+        <span class="font-mono text-xs text-muted ml-1.5">@{{ aluno.username }}</span>
+        {% if aluno.pk == user.pk %}<span class="ml-2 px-2 py-px rounded-full bg-light text-onlight font-mono text-[10.5px] font-semibold tracking-wide">VOCÊ</span>{% endif %}
+    </td>
+    <td class="font-mono text-[13px] text-muted text-right whitespace-nowrap hidden sm:table-cell">{{ aluno.avaliacoes }} avaliaç{{ aluno.avaliacoes|pluralize:"ão,ões" }}</td>
+    <td class="w-28 sm:w-44">
+        <div class="flex items-center justify-end gap-2.5">
+            <span class="hidden sm:block flex-1 h-[5px] rounded-full bg-deep overflow-hidden" aria-hidden="true">
+                <span class="block h-full rounded-full {% if pos <= 3 %}bg-light{% else %}bg-muted{% endif %}" style="width: {% widthratio aluno.media 10 100 %}%"></span>
+            </span>
+            <span class="font-mono font-semibold w-8 text-right">{{ aluno.media|floatformat:1 }}</span>
+        </div>
+    </td>
+</tr>

@@ -3,81 +3,51 @@
 {% block title %}Entrar — DevStage{% endblock %}
 
 {% block content %}
-<div class="min-h-screen grid-bg flex items-center justify-center px-6 py-16 relative overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-b from-[rgba(124,58,237,0.08)] via-transparent to-[var(--background)] pointer-events-none"></div>
-
-    <div class="relative w-full max-w-md fade-in">
-        <div class="flex items-center justify-center gap-3 mb-8">
-            <div class="w-10 h-10 rounded-lg bg-[var(--primary)] flex items-center justify-center">
-                <span class="mono text-white font-bold text-sm">DS</span>
-            </div>
-            <span class="font-extrabold text-2xl tracking-tight">
-                Dev<span class="neon-text">Stage</span>
-            </span>
+<div class="min-h-[calc(100vh-140px)] flex items-center justify-center px-6 py-16">
+    <div class="w-full max-w-md fade-in">
+        <div class="text-center mb-8">
+            <div class="font-display font-extrabold text-3xl mb-6">Dev<span class="text-light">Stage</span></div>
+            <h1 class="font-display font-extrabold text-3xl tracking-tight mb-2">Bem vindo de volta</h1>
+            <p class="text-muted">Entre para publicar desafios ou submeter soluções</p>
         </div>
 
-        <div class="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-8">
-            <h1 class="font-bold text-2xl mb-2">Bem vindo de volta</h1>
-            <p class="text-[var(--muted-foreground)] text-sm mb-8">
-                Entre para publicar desafios ou submeter soluções
-            </p>
-
+        <div class="card p-8">
             {% if form.non_field_errors %}
-            <div class="mb-5 px-4 py-3 rounded-lg bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.3)] text-[var(--red)] text-sm">
+            <div class="mb-5 px-4 py-3 rounded-xl bg-[var(--danger-soft)] border border-[var(--danger-line)] text-danger text-sm">
                 {{ form.non_field_errors|first }}
             </div>
             {% endif %}
 
-            <form method="post" class="space-y-4">
+            <form method="post" class="space-y-5">
                 {% csrf_token %}
 
-                <div>
-                    <label for="id_username" class="text-sm font-semibold mb-2 block">
-                        Nome de usuário <span class="text-[var(--red)]">*</span>
-                    </label>
-                    <input type="text"
-                           name="username"
-                           id="id_username"
-                           required
-                           autofocus
-                           class="w-full bg-[var(--muted)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)] transition-all">
+                <div class="field">
+                    <input type="text" name="username" id="id_username" required autofocus
+                           autocomplete="username" placeholder=" " class="field-input">
+                    <label for="id_username" class="field-label">Nome de usuário</label>
                 </div>
 
-                <div>
-                    <label for="id_password" class="text-sm font-semibold mb-2 block">
-                        Senha <span class="text-[var(--red)]">*</span>
-                    </label>
-                    <input type="password"
-                           name="password"
-                           id="id_password"
-                           required
-                           class="w-full bg-[var(--muted)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)] transition-all">
+                <div class="field">
+                    <input type="password" name="password" id="id_password" required
+                           autocomplete="current-password" placeholder=" " class="field-input">
+                    <label for="id_password" class="field-label">Senha</label>
                 </div>
 
                 {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
-                <button type="submit"
-                        class="w-full py-3 rounded-lg bg-[var(--primary)] hover:bg-[var(--accent)] text-white font-semibold transition-all shadow-lg hover:shadow-[var(--neon-glow)] mt-2">
-                    Entrar
-                </button>
+                {% include "components/cta.html" with label="Entrar" full=True %}
             </form>
 
-            <div class="mt-6 pt-6 border-t border-[var(--border)] text-center text-sm text-[var(--muted-foreground)]">
+            <div class="mt-7 pt-6 border-t border-line text-center text-sm text-muted">
                 Ainda não tem conta?
                 <div class="flex justify-center gap-3 mt-3">
-                    <a href="{% url 'signup_student' %}"
-                       class="px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--foreground)] hover:border-[var(--primary)] hover:text-[var(--neon)] transition-colors">
-                        Sou estudante
-                    </a>
-                    <a href="{% url 'signup_company' %}"
-                       class="px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--foreground)] hover:border-[var(--primary)] hover:text-[var(--neon)] transition-colors">
-                        Sou empresa
-                    </a>
+                    <a href="{% url 'signup_student' %}" class="btn-ghost">Sou estudante</a>
+                    <a href="{% url 'signup_company' %}" class="btn-ghost">Sou empresa</a>
                 </div>
             </div>
         </div>
 
-        <p class="text-center text-[var(--muted-foreground)] text-xs mt-6">
+        <p class="text-center text-muted text-xs mt-6">
             Projeto Final de Curso - Engenharia de Software · UMC
         </p>
     </div>

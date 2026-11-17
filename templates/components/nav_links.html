@@ -1,0 +1,13 @@
+{# Links do menu principal — usados no cabeçalho (telas largas) e no menu móvel #}
+<a href="{% url 'challenges:list' %}" class="nav-link {% if request.resolver_match.url_name == 'list' %}is-on{% endif %}">Projetos</a>
+<a href="{% url 'dashboard:index' %}" class="nav-link {% if request.resolver_match.app_name == 'dashboard' %}is-on{% endif %}">Dashboard</a>
+<a href="{% url 'portfolio:ranking' %}" class="nav-link {% if request.resolver_match.app_name == 'portfolio' %}is-on{% endif %}">Ranking</a>
+{% if user.role == 'STUDENT' and not user.is_superuser %}
+<a href="{% url 'challenges:my_submissions' %}" class="nav-link {% if request.resolver_match.url_name == 'my_submissions' %}is-on{% endif %}">Minhas submissões</a>
+{% endif %}
+{% if user.role == 'COMPANY' %}
+<a href="{% url 'challenges:mine' %}" class="nav-link {% if request.resolver_match.url_name == 'mine' or request.resolver_match.url_name == 'submissions' or request.resolver_match.url_name == 'edit' %}is-on{% endif %}">Meus desafios</a>
+{% endif %}
+{% if user.role == 'COMPANY' and user.company_profile.approved %}
+<a href="{% url 'challenges:create' %}" class="nav-link {% if request.resolver_match.url_name == 'create' %}is-on{% endif %}">Novo desafio</a>
+{% endif %}

@@ -3,79 +3,45 @@
 {% block title %}Projetos disponíveis — DevStage{% endblock %}
 
 {% block content %}
-<div class="min-h-screen">
-    <div class="max-w-7xl mx-auto px-6 py-12">
+<div class="max-w-7xl mx-auto px-6 pt-14 pb-12">
 
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-            <div>
-                <h2 class="text-3xl font-bold mb-1">Projetos Disponíveis</h2>
-                <p class="text-[var(--muted-foreground)]">
-                    {{ challenges|length }} projeto{{ challenges|length|pluralize:"s" }} de empresas verificadas
-                </p>
-            </div>
-        </div>
-
-        {% if challenges %}
-        <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {% for challenge in challenges %}
-            <a href="{% url 'challenges:detail' challenge.pk %}"
-               class="glow-border rounded-xl bg-[var(--card)] flex flex-col cursor-pointer group fade-in">
-                <div class="p-5 flex-1">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded flex items-center justify-center font-bold text-white text-sm bg-gradient-to-br from-[var(--primary)] to-[var(--accent)]">
-                                {{ challenge.company.company_name|slice:":1"|upper }}
-                            </div>
-                            <span class="text-sm font-medium text-[var(--muted-foreground)]">
-                                {{ challenge.company.company_name }}
-                            </span>
-                        </div>
-                        <span class="mono text-[10px] font-semibold px-2 py-0.5 rounded-full border
-                                     text-[var(--green)] bg-[rgba(34,197,94,0.1)] border-[rgba(34,197,94,0.25)]">
-                            ABERTO
-                        </span>
-                    </div>
-
-                    <h3 class="font-bold text-base mb-2 leading-snug group-hover:text-[var(--neon)] transition-colors">
-                        {{ challenge.title }}
-                    </h3>
-
-                    <p class="text-[var(--muted-foreground)] text-sm leading-relaxed line-clamp-3">
-                        {{ challenge.description|truncatewords:30 }}
-                    </p>
-                </div>
-
-                <div class="px-5 py-3 border-t border-[var(--border)] flex items-center justify-between">
-                    <div class="text-left">
-                        <div class="mono text-[var(--muted-foreground)] text-[10px] uppercase tracking-widest">
-                            Publicado
-                        </div>
-                        <div class="mono text-sm font-medium">
-                            {{ challenge.created_at|date:"d M Y" }}
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="mono text-[var(--muted-foreground)] text-[10px] uppercase tracking-widest">
-                            Prazo
-                        </div>
-                        <div class="mono text-sm font-medium text-[var(--neon)]">
-                            {{ challenge.deadline|date:"d M Y" }}
-                        </div>
-                    </div>
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="bg-[var(--card)] rounded-xl border border-[var(--border)] p-12 text-center">
-            <div class="text-5xl mb-4">📭</div>
-            <h3 class="font-bold text-lg mb-2">Nenhum projeto aberto no momento</h3>
-            <p class="text-[var(--muted-foreground)] text-sm">
-                Volte em breve — empresas parceiras publicam novos desafios frequentemente.
-            </p>
-        </div>
-        {% endif %}
-
+    <div class="text-center mb-10">
+        <h1 class="font-display font-extrabold text-4xl sm:text-[40px] tracking-tight leading-[1.08]">Projetos Disponíveis</h1>
+        <p class="text-muted mt-3">
+            {{ challenges|length }} projeto{{ challenges|length|pluralize:"s" }} de empresas verificadas
+        </p>
     </div>
+
+    {% if challenges %}
+    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-[18px]">
+        {% for challenge in challenges %}
+        <a href="{% url 'challenges:detail' challenge.pk %}" class="card card-link p-5 flex flex-col gap-2.5 fade-in">
+            <div class="flex items-center justify-between gap-3 text-[13px] font-medium text-muted">
+                <span class="truncate">{{ challenge.company.company_name }}</span>
+                {% include "challenges/_status_badge.html" with status=challenge.status label=challenge.get_status_display %}
+            </div>
+
+            <h2 class="font-display font-bold text-lg leading-snug">{{ challenge.title }}</h2>
+
+            <p class="text-muted text-sm leading-relaxed flex-1">
+                {{ challenge.description|truncatewords:30 }}
+            </p>
+
+            <div class="flex items-center justify-between pt-3 mt-1 border-t border-line font-mono text-xs text-muted">
+                <span>publicado <span class="text-fg font-semibold">{{ challenge.created_at|date:"d M Y" }}</span></span>
+                <span>prazo <span class="text-fg font-semibold">{{ challenge.deadline|date:"d M Y" }}</span></span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card p-12 text-center max-w-xl mx-auto">
+        <h2 class="font-display font-bold text-lg mb-2">Nenhum projeto aberto no momento</h2>
+        <p class="text-muted text-sm">
+            Volte em breve — empresas parceiras publicam novos desafios frequentemente.
+        </p>
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}
