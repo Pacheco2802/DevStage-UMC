@@ -2,77 +2,34 @@
 {% block title %}Cadastro de estudante · DevStage{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center px-6 py-16 grid-bg">
-    <div class="w-full max-w-md">
+<div class="min-h-[calc(100vh-140px)] flex items-center justify-center px-6 py-16">
+    <div class="w-full max-w-md fade-in">
         <div class="mb-8 text-center">
-            <div class="inline-flex items-center gap-2 mb-4">
-                <div class="w-9 h-9 rounded bg-[var(--primary)] flex items-center justify-center">
-                    <span class="mono text-white font-bold text-sm">DS</span>
-                </div>
-                <span class="font-semibold text-lg tracking-wide">
-                    Dev<span class="text-[var(--neon)]">Stage</span>
-                </span>
-            </div>
-            <h1 class="text-2xl font-semibold mb-1">Criar conta de estudante</h1>
-            <p class="text-sm text-[var(--muted-foreground)]">
-                Envie soluções para desafios reais de empresas.
-            </p>
+            <a href="{% url 'login' %}" class="inline-block font-display font-extrabold text-2xl mb-6">Dev<span class="text-light">Stage</span></a>
+            <h1 class="font-display font-extrabold text-3xl tracking-tight mb-2">Criar conta de estudante</h1>
+            <p class="text-muted">Envie soluções para desafios reais de empresas.</p>
         </div>
 
-        <form method="post" class="glow-border rounded-xl p-6 bg-[var(--card)] space-y-4">
+        <form method="post" class="card p-8 space-y-5">
             {% csrf_token %}
 
             {% for field in form %}
-            <div>
-                <label for="{{ field.id_for_label }}"
-                       class="block mb-1.5 text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">
-                    {{ field.label }}
-                </label>
-
                 {% if field.name == "accept_lgpd" %}
-                <label class="flex items-start gap-2 cursor-pointer">
-                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}"
-                           class="mt-1 w-4 h-4 accent-[var(--primary)]"
-                           {% if field.value %}checked{% endif %} required>
-                    <span class="text-sm text-[var(--muted-foreground)]">
-                        Li e aceito os
-                        <a href="{% url 'core:terms' %}" target="_blank" class="text-[var(--neon)] hover:underline">termos de uso</a>
-                        e a
-                        <a href="{% url 'core:privacy' %}" target="_blank" class="text-[var(--neon)] hover:underline">política de privacidade</a>.
-                    </span>
-                </label>
+                    {% include "components/accept_lgpd.html" with field=field %}
                 {% else %}
-                <input type="{{ field.field.widget.input_type|default:'text' }}"
-                       name="{{ field.name }}"
-                       id="{{ field.id_for_label }}"
-                       value="{{ field.value|default:'' }}"
-                       {% if field.field.required %}required{% endif %}
-                       class="w-full px-3 py-2 rounded bg-[var(--secondary)] border border-[var(--border)]
-                              text-sm focus:border-[var(--primary)] transition-colors">
+                    {% include "components/field.html" with field=field %}
                 {% endif %}
-
-                {% if field.help_text %}
-                <p class="mt-1 text-xs text-[var(--muted-foreground)]">{{ field.help_text|safe }}</p>
-                {% endif %}
-                {% for error in field.errors %}
-                <p class="mt-1 text-xs text-[var(--red)]">{{ error }}</p>
-                {% endfor %}
-            </div>
             {% endfor %}
 
             {% if form.non_field_errors %}
-            <div class="text-xs text-[var(--red)]">{{ form.non_field_errors }}</div>
+            <div class="err">{{ form.non_field_errors }}</div>
             {% endif %}
 
-            <button type="submit"
-                    class="w-full py-2.5 rounded bg-[var(--primary)] hover:bg-[var(--accent)]
-                           text-white font-medium text-sm transition-colors">
-                Criar conta
-            </button>
+            {% include "components/cta.html" with label="Criar conta" full=True %}
 
-            <p class="text-center text-xs text-[var(--muted-foreground)] pt-2">
+            <p class="text-center text-sm text-muted pt-1">
                 Já tem conta?
-                <a href="{% url 'login' %}" class="text-[var(--neon)] hover:underline">Entrar</a>
+                <a href="{% url 'login' %}" class="link">Entrar</a>
             </p>
         </form>
     </div>

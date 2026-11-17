@@ -1,0 +1,23 @@
+{% comment %}
+Campo com rótulo flutuante para as telas de cadastro (estilo .field, definido no base.html).
+Uso: include "components/field.html" with field=field
+Senhas não são reescritas na página quando o formulário volta com erro.
+{% endcomment %}
+<div>
+    <div class="field">
+        <input type="{{ field.field.widget.input_type|default:'text' }}"
+               name="{{ field.html_name }}"
+               id="{{ field.id_for_label }}"
+               {% if field.field.widget.input_type != 'password' %}value="{{ field.value|default:'' }}"{% endif %}
+               placeholder=" "
+               {% if field.field.required %}required{% endif %}
+               class="field-input">
+        <label for="{{ field.id_for_label }}" class="field-label">{{ field.label }}</label>
+    </div>
+    {% if field.help_text %}
+    <div class="help">{{ field.help_text|safe }}</div>
+    {% endif %}
+    {% for error in field.errors %}
+    <p class="err">{{ error }}</p>
+    {% endfor %}
+</div>
