@@ -110,6 +110,18 @@ python manage.py runserver
 
 Acesse http://localhost:8000.
 
+### Dados de demonstração (opcional)
+
+O comando `seed_demo` cria empresas, desafios, estudantes, submissões e avaliações fictícias para explorar o sistema sem cadastrar tudo à mão. A senha das contas criadas vem da variável de ambiente `SEED_DEMO_PASSWORD` (não fica no código).
+
+```bash
+set SEED_DEMO_PASSWORD=escolha-uma-senha     # Windows  (Linux/macOS: export SEED_DEMO_PASSWORD=...)
+python manage.py seed_demo                   # cria os dados
+python manage.py seed_demo --limpar          # remove só os dados de demonstração
+```
+
+As contas de demonstração usam e-mails do domínio reservado `demo.devstage.test`; é por essa marca que `--limpar` apaga apenas elas, sem tocar em contas reais. Rodar o comando duas vezes não duplica nada.
+
 ### Variáveis de ambiente
 
 | Variável | Descrição | Exemplo (local) |
@@ -131,9 +143,9 @@ python -m pytest
 | Tipo | Pasta | O que cobre |
 |---|---|---|
 | Unitários | `tests/unit/` | Regras de submissão, formulário de submissão e cliente do GitHub (com a API simulada) |
-| Integração | `tests/integration/` | Fluxos HTTP completos: contas, desafios, submissão, avaliação, painel da empresa, portfólio, dashboard e LGPD |
+| Integração | `tests/integration/` | Fluxos HTTP completos: contas, desafios, submissão, avaliação, painel da empresa, portfólio, dashboard, LGPD e o comando de dados de demonstração |
 
-Resultado atual: **114 testes passando**.
+Resultado atual: **120 testes passando**.
 
 ---
 
