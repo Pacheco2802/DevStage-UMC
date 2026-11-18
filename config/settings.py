@@ -71,6 +71,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # Depois da autenticação (precisa de request.user): exige o aceite da versão vigente dos termos
+    'accounts.middleware.TermsConsentMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -162,9 +164,7 @@ LOGIN_REDIRECT_URL = "/challenges/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 # LGPD
-# Versão vigente dos Termos de Uso / Política de Privacidade. Ao alterar os documentos,
-# incremente aqui: cada aceite (ConsentLog) grava a versão que o usuário aceitou.
-LGPD_TERMS_VERSION = "1.0"
+# A versão vigente dos termos não fica mais aqui: é a TermsVersion mais recente (accounts.models).
 DPO_NAME = env.str("DPO_NAME", default="Pedro Henrique Prado Pacheco")
 DPO_EMAIL = env.str("DPO_EMAIL", default="dpo@devstage.com.br")
 

@@ -28,7 +28,9 @@ def _unico(prefixo):
     return f"{prefixo}-{uuid.uuid4().hex[:8]}"
 
 
-@pytest.mark.django_db(transaction=True)
+# transaction=True esvazia todas as tabelas ao fim de cada teste; serialized_rollback devolve
+# o que as migrações criaram (as versões dos termos, exigidas no cadastro e no acesso).
+@pytest.mark.django_db(transaction=True, serialized_rollback=True)
 class TestChallengeEndpointsHttp:
 
     @pytest.fixture(autouse=True)

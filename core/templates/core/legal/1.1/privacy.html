@@ -1,18 +1,9 @@
-{% extends "base.html" %}
+{% extends "core/legal/_base.html" %}
 {% block title %}Política de Privacidade · DevStage{% endblock %}
+{% block legal_eyebrow %}Documento legal · LGPD{% endblock %}
+{% block legal_title %}Política de Privacidade{% endblock %}
 
-{% block content %}
-<div class="max-w-3xl mx-auto px-6 py-16">
-    <p class="eyebrow mb-3">
-        Documento legal · LGPD
-    </p>
-    <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1] mb-3">Política de Privacidade</h1>
-    <p class="text-sm text-muted mb-10">
-        Última atualização: 31 de outubro de 2026 · Versão {{ LGPD_TERMS_VERSION }}
-    </p>
-
-    <article class="space-y-8 text-sm leading-relaxed text-fg">
-
+{% block legal_body %}
         <section>
             <p>
                 Esta política descreve como a plataforma <strong>DevStage</strong> coleta, utiliza,
@@ -23,11 +14,13 @@
 
         <section>
             <h2 class="font-display font-bold text-lg mb-2">1. Dados coletados</h2>
-            <p class="mb-2">Coletamos os seguintes dados diretamente informados pelo usuário no cadastro:</p>
+            <p class="mb-2">Tratamos os seguintes dados, informados pelo usuário ou gerados pelo uso da plataforma:</p>
             <ul class="list-disc list-inside space-y-1 text-muted">
                 <li><strong>Estudantes:</strong> nome de usuário, e-mail, primeiro nome, senha (armazenada como hash PBKDF2-SHA256).</li>
                 <li><strong>Empresas:</strong> nome de usuário, e-mail, senha (hash) e nome fantasia da empresa.</li>
                 <li><strong>Submissões:</strong> URL do repositório, URL de deploy (opcional) e descrição da solução.</li>
+                <li><strong>Avaliações:</strong> nota e feedback atribuídos pela empresa a cada submissão.</li>
+                <li><strong>Consentimento:</strong> versão dos termos aceita, data e hora, IP de origem e navegador, guardados como prova do aceite.</li>
                 <li><strong>Auditoria:</strong> IP de origem, caminho acessado e horário das ações realizadas no sistema.</li>
             </ul>
         </section>
@@ -37,7 +30,7 @@
             <ul class="list-disc list-inside space-y-1 text-muted">
                 <li><strong>Consentimento</strong> do titular no ato do cadastro (art. 7º, I).</li>
                 <li><strong>Execução de contrato</strong> quando os dados são necessários para operar a plataforma (art. 7º, V).</li>
-                <li><strong>Cumprimento de obrigação legal</strong> para os registros de auditoria (art. 7º, II).</li>
+                <li><strong>Cumprimento de obrigação legal</strong> para os registros de auditoria (art. 7º, II), tendo como referência a guarda de registros de acesso prevista no art. 15 da Lei nº 12.965/2014 (Marco Civil da Internet).</li>
             </ul>
         </section>
 
@@ -46,6 +39,7 @@
             <ul class="list-disc list-inside space-y-1 text-muted">
                 <li>Autenticar o usuário e controlar acesso a funcionalidades.</li>
                 <li>Permitir a submissão de soluções e a avaliação por empresas.</li>
+                <li>Exibir o ranking e o portfólio dos estudantes a partir das avaliações recebidas.</li>
                 <li>Manter trilha de auditoria para segurança e integridade da plataforma.</li>
                 <li>Integrar com a API do GitHub para verificar existência de repositórios informados.</li>
             </ul>
@@ -55,8 +49,12 @@
             <h2 class="font-display font-bold text-lg mb-2">4. Compartilhamento</h2>
             <p>
                 Dados de submissão (repositório, descrição) são compartilhados com a empresa
-                responsável pelo desafio para fins de avaliação. Não vendemos, alugamos ou
-                cedemos dados pessoais a terceiros para fins publicitários.
+                responsável pelo desafio para fins de avaliação. Estudantes com ao menos uma
+                submissão avaliada aparecem no ranking e têm um portfólio, ambos visíveis aos demais
+                usuários autenticados da plataforma, com nome, nome de usuário, notas, feedbacks
+                recebidos e links do repositório e do deploy das submissões avaliadas. O e-mail
+                nunca é exibido. Não vendemos, alugamos ou cedemos dados pessoais a terceiros para
+                fins publicitários.
             </p>
         </section>
 
@@ -95,8 +93,8 @@
             <h2 class="font-display font-bold text-lg mb-2">7. Retenção e exclusão</h2>
             <p>
                 Dados pessoais são mantidos enquanto a conta estiver ativa. Registros de auditoria
-                são preservados por período mínimo definido por obrigação legal, ainda que a conta
-                seja excluída. Ao solicitar a eliminação, os dados identificáveis da conta
+                são preservados por no mínimo 6 meses, prazo que tem como referência o art. 15 da
+                Lei nº 12.965/2014 (Marco Civil da Internet), ainda que a conta seja excluída. Ao solicitar a eliminação, os dados identificáveis da conta
                 (nome, e-mail e nome de usuário) são anonimizados e a conta é desativada;
                 desafios, submissões e avaliações permanecem sem vínculo identificável, para não
                 prejudicar outros usuários. O registro do consentimento é mantido como prova
@@ -121,11 +119,14 @@
             </p>
         </section>
 
-    </article>
-
-    <div class="mt-12 pt-6 border-t border-line flex items-center justify-between text-xs text-muted">
-        <a href="{% url 'core:terms' %}" class="hover:text-light transition-colors">← Termos de Uso</a>
-        <a href="{% url 'challenges:list' %}" class="hover:text-light transition-colors">Voltar aos desafios</a>
-    </div>
-</div>
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">9. Alterações desta política</h2>
+            <p>
+                Esta política e os Termos de Uso são versionados em conjunto. Cada alteração gera uma
+                nova versão numerada, publicada com a data e um resumo do que mudou; as versões
+                anteriores continuam disponíveis para consulta nesta página. No primeiro acesso após
+                a publicação, a plataforma pede um novo aceite, e cada aceite fica registrado com a
+                versão correspondente (item 1).
+            </p>
+        </section>
 {% endblock %}

@@ -4,7 +4,7 @@ import pytest
 from django.conf import settings
 from django.urls import reverse
 
-from accounts.models import ConsentLog, User
+from accounts.models import ConsentLog, TermsVersion, User
 from audit.models import AuditLog
 from challenges.models import Challenge, Submission
 
@@ -27,7 +27,7 @@ def _dados_cadastro_estudante(**extra):
 @pytest.fixture
 def consentimento(estudante):
     return ConsentLog.objects.create(
-        user=estudante, terms_version=settings.LGPD_TERMS_VERSION, ip="127.0.0.1", user_agent="pytest"
+        user=estudante, terms_version=TermsVersion.current().version, ip="127.0.0.1", user_agent="pytest"
     )
 
 
@@ -44,7 +44,7 @@ def test_cadastro_estudante_grava_consentimento_com_evidencias(client):
 
     user = User.objects.get(username="novoaluno")
     consent = ConsentLog.objects.get(user=user)
-    assert consent.terms_version == settings.LGPD_TERMS_VERSION
+    assert consent.terms_version == TermsVersion.current().version
     assert consent.ip == "10.0.0.7"
     assert consent.user_agent == "Mozilla/5.0 teste"
     assert consent.accepted_at is not None
@@ -165,7 +165,7 @@ def test_exportar_dados_retorna_json_e_registra_auditoria(client, estudante, con
     assert "attachment" in response["Content-Disposition"]
     data = json.loads(response.content)
     assert data["usuario"]["username"] == "aluno"
-    assert data["consentimentos"][0]["versao_termos"] == settings.LGPD_TERMS_VERSION
+    assert data["consentimentos"][0]["versao_termos"] == TermsVersion.current().version
     assert data["submissoes"][0]["repo_url"] == "https://github.com/aluno/api"
     assert AuditLog.objects.filter(user=estudante, action=AuditLog.Action.ACCESS).exists()
 

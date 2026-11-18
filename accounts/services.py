@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -7,17 +6,25 @@ from challenges.models import Challenge
 
 from core.utils import get_client_ip, get_user_agent
 
-from .models import ConsentLog
+from .models import ConsentLog, TermsVersion
 
 
 def record_consent(user, request):
-    """Guarda a evidência do aceite: versão dos termos, IP e navegador."""
+    """Guarda a evidência do aceite: versão vigente dos termos, IP e navegador."""
     return ConsentLog.objects.create(
         user=user,
-        terms_version=settings.LGPD_TERMS_VERSION,
+        terms_version=TermsVersion.current().version,
         ip=get_client_ip(request),
         user_agent=get_user_agent(request),
     )
+
+
+def has_current_consent(user):
+    """O usuário tem aceite ativo (não revogado) da versão vigente dos termos?"""
+    return user.consents.filter(
+        terms_version=TermsVersion.current().version,
+        revoked_at__isnull=True,
+    ).exists()
 
 
 def revoke_consent(user):
@@ -54,7 +61,7 @@ def export_user_data(user):
     """Portabilidade (art. 18, V): todos os dados do titular em estrutura serializável."""
     data = {
         "exportado_em": timezone.now().isoformat(),
-        "versao_termos_vigente": settings.LGPD_TERMS_VERSION,
+        "versao_termos_vigente": TermsVersion.current().version,
         "usuario": {
             "username": user.username,
             "email": user.email,

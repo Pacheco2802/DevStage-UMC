@@ -51,6 +51,14 @@ class CompanySignupForm(UserCreationForm):
         return user
 
 
+class TermsAcceptForm(forms.Form):
+    """Novo aceite quando uma versão dos termos é publicada: a caixa marcada é validada no servidor."""
+    accept_lgpd = forms.BooleanField(
+        required=True,
+        label="Li e aceito os termos de uso e a política de privacidade",
+    )
+
+
 class MyDataForm(forms.ModelForm):
     """Correção de dados cadastrais (art. 18, III)."""
     email = forms.EmailField(required=True, label="E-mail")
