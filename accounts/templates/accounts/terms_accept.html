@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Aceite dos termos · DevStage{% endblock %}
+
+{# Tela do novo aceite: o TermsConsentMiddleware traz para cá quem ainda não aceitou a versão vigente. #}
+{% block content %}
+<div class="min-h-[calc(100vh-140px)] flex items-center justify-center px-6 py-16">
+    <div class="w-full max-w-xl fade-in">
+        <div class="mb-8 text-center">
+            <p class="eyebrow mb-3">Documento legal · LGPD</p>
+            <h1 class="font-display font-extrabold text-3xl tracking-tight mb-2">Termos de uso e privacidade</h1>
+            <p class="text-muted">
+                Versão <span class="font-mono text-light">{{ terms.version }}</span>,
+                publicada em {{ terms.published_at|date:"j \d\e F \d\e Y"|lower }}.
+                Para continuar usando a DevStage, veja o que mudou e confirme o aceite.
+            </p>
+        </div>
+
+        <form method="post" class="card p-8 space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <h2 class="font-display font-bold mb-3">O que mudou nesta versão</h2>
+                <div class="text-sm text-muted space-y-2">{{ terms.summary|linebreaks }}</div>
+            </div>
+
+            {% include "components/accept_lgpd.html" with field=form.accept_lgpd %}
+
+            {% include "components/cta.html" with label="Aceitar e continuar" full=True %}
+        </form>
+
+        <p class="text-center text-sm text-muted mt-6">
+            Não concorda? Em <a href="{% url 'my_data' %}" class="link">Meus Dados</a> você pode
+            exportar seus dados, revogar o consentimento ou excluir a conta.
+        </p>
+    </div>
+</div>
+{% endblock %}

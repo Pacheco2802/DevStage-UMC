@@ -5,6 +5,7 @@ urlpatterns = [
     path("", include("django.contrib.auth.urls")),
     path("signup/estudante/", views.signup_student, name="signup_student"),
     path("signup/empresa/", views.signup_company, name="signup_company"),
+    path("termos/aceitar/", views.terms_accept, name="terms_accept"),
     path("meus-dados/", views.my_data, name="my_data"),
     path("meus-dados/exportar/", views.my_data_export, name="my_data_export"),
     path("meus-dados/excluir/", views.my_data_delete, name="my_data_delete"),

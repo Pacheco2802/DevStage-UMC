@@ -9,6 +9,14 @@ from challenges.models import Challenge
 # Cada teste monta o próprio cenário no banco de teste (criado e apagado pelo pytest-django)
 
 
+@pytest.fixture(autouse=True)
+def aceite_em_dia(monkeypatch):
+    """Os usuários destes testes são criados direto no banco, sem passar pelo cadastro, e por isso
+    não têm aceite dos termos. Como o assunto aqui é outra regra, o middleware os trata como em dia.
+    A regra do aceite é testada de verdade em test_termos.py, que desliga este atalho."""
+    monkeypatch.setattr("accounts.middleware.has_current_consent", lambda user: True)
+
+
 @pytest.fixture
 def estudante(db):
     return User.objects.create_user(username="aluno", password="senha-teste-123", role=User.Role.STUDENT)

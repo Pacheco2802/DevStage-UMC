@@ -12,13 +12,12 @@ import random
 import unicodedata
 from datetime import timedelta
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
-from accounts.models import CompanyProfile, ConsentLog
+from accounts.models import CompanyProfile, ConsentLog, TermsVersion
 from challenges.models import Challenge, Evaluation, Submission
 
 User = get_user_model()
@@ -216,7 +215,7 @@ class Command(BaseCommand):
             role=role,
             **extras,
         )
-        ConsentLog.objects.create(user=user, terms_version=settings.LGPD_TERMS_VERSION, user_agent="seed_demo")
+        ConsentLog.objects.create(user=user, terms_version=TermsVersion.current().version, user_agent="seed_demo")
         return user
 
     def criar_empresas(self, senha):

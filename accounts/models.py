@@ -30,6 +30,26 @@ class CompanyProfile(models.Model):
         return self.company_name
 
 
+class TermsVersion(models.Model):
+    """Versão publicada dos Termos de Uso e da Política de Privacidade.
+
+    O texto de cada versão fica em templates (core/legal/<versão>/), versionado no git;
+    aqui ficam a data de publicação e o resumo do que mudou. A mais recente é a vigente."""
+    version = models.CharField(max_length=20, unique=True)
+    published_at = models.DateTimeField()
+    summary = models.TextField()
+
+    class Meta:
+        ordering = ["-published_at"]
+
+    def __str__(self):
+        return f"Termos v{self.version}"
+
+    @classmethod
+    def current(cls):
+        return cls.objects.first()
+
+
 class ConsentLog(models.Model):
     """Registro do aceite dos termos (LGPD art. 8º): quem aceitou, qual versão, quando e de onde."""
     user = models.ForeignKey(

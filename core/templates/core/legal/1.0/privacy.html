@@ -1,18 +1,9 @@
-{% extends "base.html" %}
+{% extends "core/legal/_base.html" %}
 {% block title %}Política de Privacidade · DevStage{% endblock %}
+{% block legal_eyebrow %}Documento legal · LGPD{% endblock %}
+{% block legal_title %}Política de Privacidade{% endblock %}
 
-{% block content %}
-<div class="max-w-3xl mx-auto px-6 py-16">
-    <p class="eyebrow mb-3">
-        Documento legal · LGPD
-    </p>
-    <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1] mb-3">Política de Privacidade</h1>
-    <p class="text-sm text-muted mb-10">
-        Última atualização: 31 de outubro de 2026 · Versão {{ LGPD_TERMS_VERSION }}
-    </p>
-
-    <article class="space-y-8 text-sm leading-relaxed text-fg">
-
+{% block legal_body %}
         <section>
             <p>
                 Esta política descreve como a plataforma <strong>DevStage</strong> coleta, utiliza,
@@ -120,12 +111,4 @@
                 Solicitações enviadas ao encarregado são respondidas em até 15 dias (art. 19, II).
             </p>
         </section>
-
-    </article>
-
-    <div class="mt-12 pt-6 border-t border-line flex items-center justify-between text-xs text-muted">
-        <a href="{% url 'core:terms' %}" class="hover:text-light transition-colors">← Termos de Uso</a>
-        <a href="{% url 'challenges:list' %}" class="hover:text-light transition-colors">Voltar aos desafios</a>
-    </div>
-</div>
 {% endblock %}

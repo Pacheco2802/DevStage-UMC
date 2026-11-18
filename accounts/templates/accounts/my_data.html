@@ -71,7 +71,7 @@
     <section class="card p-6" x-data="{ confirmRevoke: false }">
         <h2 class="font-display font-bold mb-1">Consentimento</h2>
         <p class="text-xs text-muted mb-5">
-            Histórico de aceites dos termos · versão vigente <span class="font-mono text-light">{{ LGPD_TERMS_VERSION }}</span>
+            Histórico de aceites dos termos · versão vigente <span class="font-mono text-light">{{ terms.version }}</span>
         </p>
 
         {% if consents %}
@@ -94,6 +94,8 @@
                         <td class="py-2">
                             {% if c.revoked_at %}
                             <span class="text-xs text-danger">Revogado em {{ c.revoked_at|date:"d/m/Y H:i" }}</span>
+                            {% elif c.terms_version != terms.version %}
+                            <span class="text-xs text-muted">Versão anterior</span>
                             {% else %}
                             <span class="text-xs text-ok">Ativo</span>
                             {% endif %}

@@ -1,18 +1,8 @@
-{% extends "base.html" %}
+{% extends "core/legal/_base.html" %}
 {% block title %}Termos de Uso · DevStage{% endblock %}
+{% block legal_title %}Termos de Uso{% endblock %}
 
-{% block content %}
-<div class="max-w-3xl mx-auto px-6 py-16">
-    <p class="eyebrow mb-3">
-        Documento legal
-    </p>
-    <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1] mb-3">Termos de Uso</h1>
-    <p class="text-sm text-muted mb-10">
-        Última atualização: 31 de outubro de 2026 · Versão {{ LGPD_TERMS_VERSION }}
-    </p>
-
-    <article class="space-y-8 text-sm leading-relaxed text-fg">
-
+{% block legal_body %}
         <section>
             <h2 class="font-display font-bold text-lg mb-2">1. Aceitação dos termos</h2>
             <p>
@@ -88,12 +78,4 @@
                 <a href="mailto:{{ DPO_EMAIL }}" class="font-mono link">{{ DPO_EMAIL }}</a>.
             </p>
         </section>
-
-    </article>
-
-    <div class="mt-12 pt-6 border-t border-line flex items-center justify-between text-xs text-muted">
-        <a href="{% url 'core:privacy' %}" class="hover:text-light transition-colors">Política de Privacidade →</a>
-        <a href="{% url 'challenges:list' %}" class="hover:text-light transition-colors">Voltar aos desafios</a>
-    </div>
-</div>
 {% endblock %}
