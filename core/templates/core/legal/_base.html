@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% comment %}
+Moldura comum dos documentos legais. Cada versão publicada tem a própria pasta
+(core/legal/<versão>/terms.html e privacy.html) e preenche só o título e o texto.
+Contexto, vindo de core.views.legal_document: document ("terms" ou "privacy"),
+terms (a TermsVersion exibida), is_current e versions (todas as publicadas).
+{% endcomment %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-16">
+    <p class="eyebrow mb-3">{% block legal_eyebrow %}Documento legal{% endblock %}</p>
+    <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1] mb-3">{% block legal_title %}{% endblock %}</h1>
+    <p class="text-sm text-muted mb-10">
+        Publicada em {{ terms.published_at|date:"j \d\e F \d\e Y"|lower }} · Versão {{ terms.version }}
+    </p>
+
+    {% if not is_current %}
+    <p class="rounded-2xl border border-line bg-surface p-4 mb-10 text-sm">
+        Esta é uma versão anterior, mantida para consulta.
+        <a href="{% url 'core:'|add:document %}" class="link">Ver a versão vigente</a>
+    </p>
+    {% endif %}
+
+    <article class="space-y-8 text-sm leading-relaxed text-fg">
+        {% block legal_body %}{% endblock %}
+    </article>
+
+    <p class="mt-12 text-xs text-muted">
+        Versões publicadas:
+        {% for v in versions %}
+        <a href="{% url 'core:'|add:document|add:'_version' v.version %}" class="font-mono link">{{ v.version }}</a>{% if not forloop.last %} ·{% endif %}
+        {% endfor %}
+    </p>
+
+    <div class="mt-6 pt-6 border-t border-line flex items-center justify-between text-xs text-muted">
+        {% if document == "terms" %}
+        <a href="{% url 'core:privacy' %}" class="hover:text-light transition-colors">Política de Privacidade →</a>
+        {% else %}
+        <a href="{% url 'core:terms' %}" class="hover:text-light transition-colors">← Termos de Uso</a>
+        {% endif %}
+        <a href="{% url 'challenges:list' %}" class="hover:text-light transition-colors">Voltar aos desafios</a>
+    </div>
+</div>
+{% endblock %}

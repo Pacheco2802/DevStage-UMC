@@ -8,8 +8,9 @@ from django.views.decorators.http import require_POST
 
 from audit.models import AuditLog
 from core.utils import get_client_ip
-from .forms import StudentSignupForm, CompanySignupForm, MyDataForm, CompanyDataForm
-from .services import anonymize_user, export_user_data, record_consent, revoke_consent
+from .forms import StudentSignupForm, CompanySignupForm, MyDataForm, CompanyDataForm, TermsAcceptForm
+from .models import TermsVersion
+from .services import anonymize_user, export_user_data, has_current_consent, record_consent, revoke_consent
 
 # Create your views here.
 
@@ -42,6 +43,22 @@ def signup_company(request):
     return render(request, "accounts/signup_company.html", {"form": form})
 
 @login_required
+def terms_accept(request):
+    """Tela para onde o TermsConsentMiddleware leva quem ainda não aceitou a versão vigente."""
+    if has_current_consent(request.user):
+        return redirect("challenges:list")
+
+    form = TermsAcceptForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        # Aceite novo, com as mesmas evidências do cadastro; os anteriores ficam no histórico
+        record_consent(request.user, request)
+        messages.success(request, "Aceite registrado. Obrigado!")
+        return redirect("challenges:list")
+
+    return render(request, "accounts/terms_accept.html", {"form": form, "terms": TermsVersion.current()})
+
+
+@login_required
 def my_data(request):
     user = request.user
     company = getattr(user, "company_profile", None)
@@ -63,6 +80,7 @@ def my_data(request):
         "form": form,
         "company_form": company_form,
         "consents": user.consents.all(),
+        "terms": TermsVersion.current(),
         "submissions": user.submissions.select_related("challenge"),
         "audit_logs": AuditLog.objects.filter(user=user)[:10],
     })

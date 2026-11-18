@@ -1,0 +1,85 @@
+{% extends "core/legal/_base.html" %}
+{% block title %}Termos de Uso · DevStage{% endblock %}
+{% block legal_title %}Termos de Uso{% endblock %}
+
+{% block legal_body %}
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">1. Aceitação dos termos</h2>
+            <p>
+                Ao criar uma conta na plataforma <strong>DevStage</strong>, você declara que leu,
+                compreendeu e concorda com estes Termos de Uso e com a Política de Privacidade.
+                Se você não concorda com qualquer disposição, não deve utilizar a plataforma.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">2. Sobre a plataforma</h2>
+            <p>
+                A DevStage é uma plataforma acadêmica que conecta estudantes de tecnologia a empresas
+                por meio de desafios técnicos. Empresas publicam desafios, estudantes submetem soluções
+                (link de repositório, deploy opcional e descrição), e as empresas avaliam manualmente.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">3. Contas de usuário</h2>
+            <p class="mb-2">
+                Existem três perfis: <strong>estudante</strong>, <strong>empresa</strong> e
+                <strong>administrador da plataforma</strong>.
+            </p>
+            <ul class="list-disc list-inside space-y-1 text-muted">
+                <li>Estudantes podem se cadastrar livremente e submeter soluções.</li>
+                <li>Contas de empresa passam por aprovação de um administrador antes de publicar desafios.</li>
+                <li>Você é responsável por manter suas credenciais em sigilo.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">4. Conduta esperada</h2>
+            <p>
+                Você concorda em não publicar conteúdo ilícito, ofensivo, discriminatório ou que
+                viole direitos de terceiros. Submissões devem ser de autoria própria e respeitar
+                as licenças dos códigos utilizados.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">5. Propriedade intelectual</h2>
+            <p>
+                O código submetido continua de propriedade do autor. Ao submeter, você concede à
+                empresa avaliadora o direito de visualizar e avaliar a solução exclusivamente para
+                fins do processo do desafio.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">6. Limitação de responsabilidade</h2>
+            <p>
+                A DevStage é fornecida "no estado em que se encontra", sem garantias de disponibilidade
+                contínua. Este é um projeto acadêmico e não constitui vínculo empregatício entre
+                estudantes e empresas cadastradas.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">7. Alterações destes termos</h2>
+            <p>
+                Estes termos podem ser atualizados. Cada alteração gera uma nova versão numerada,
+                publicada nesta página com a data e um resumo do que mudou; as versões anteriores
+                continuam disponíveis para consulta. No primeiro acesso após a publicação, a
+                plataforma apresenta esse resumo e pede um novo aceite. Enquanto ele não for dado,
+                ficam disponíveis apenas a leitura dos documentos e a página Meus Dados, na qual é
+                possível exportar os dados, revogar o consentimento e excluir a conta. Não há aceite
+                tácito: continuar usando a plataforma não equivale a concordar com a nova versão.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">8. Contato</h2>
+            <p>
+                Dúvidas relacionadas a estes Termos podem ser encaminhadas ao encarregado da
+                plataforma, {{ DPO_NAME }}, pelo e-mail
+                <a href="mailto:{{ DPO_EMAIL }}" class="font-mono link">{{ DPO_EMAIL }}</a>.
+            </p>
+        </section>
+{% endblock %}
