@@ -45,6 +45,7 @@ Empresa publica desafio → Estudante submete solução → Empresa avalia → P
 - Registro do **consentimento** no cadastro (versão dos termos aceita, data, IP e navegador) e possibilidade de **revogação**.
 - Página **Meus Dados** (direitos do art. 18): **acesso** aos dados, consentimentos e histórico de atividade; **correção** dos dados cadastrais; **portabilidade** com exportação em JSON; e **exclusão da conta por anonimização**: remove nome, e-mail e acesso do titular, mas mantém desafios e submissões para não quebrar dados de outros usuários; desafios abertos de uma empresa excluída são encerrados.
 - **Trilha de auditoria** (app `audit`): login, logout e criação/alteração/exclusão dos principais registros.
+- **Termos versionados**: cada versão publicada dos Termos de Uso e da Política de Privacidade fica registrada com data e resumo das mudanças, e as anteriores continuam disponíveis para consulta. Ao publicar uma versão nova, o usuário logado precisa dar **novo aceite** no acesso seguinte; enquanto não aceita, continua podendo ler os documentos, exportar seus dados, revogar o consentimento e excluir a conta.
 - Termos de Uso, Política de Privacidade e contato do encarregado (DPO) acessíveis no rodapé.
 
 ## Stack
@@ -143,9 +144,9 @@ python -m pytest
 | Tipo | Pasta | O que cobre |
 |---|---|---|
 | Unitários | `tests/unit/` | Regras de submissão, formulário de submissão e cliente do GitHub (com a API simulada) |
-| Integração | `tests/integration/` | Fluxos HTTP completos: contas, desafios, submissão, avaliação, painel da empresa, portfólio, dashboard, LGPD e o comando de dados de demonstração |
+| Integração | `tests/integration/` | Fluxos HTTP completos: contas, desafios, submissão, avaliação, painel da empresa, portfólio, dashboard, LGPD, versionamento dos termos e o comando de dados de demonstração |
 
-Resultado atual: **120 testes passando**.
+Resultado atual: **140 testes passando**.
 
 ---
 
