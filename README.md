@@ -20,8 +20,8 @@ Empresa publica desafio → Estudante submete solução → Empresa avalia → P
 
 | Perfil | Funcionalidades |
 |---|---|
-| **Visitante** | Cadastro como estudante ou empresa (com aceite dos Termos de Uso e da Política de Privacidade) · Login · **Ranking** e **portfólios públicos**, sem precisar de conta |
-| **Estudante** | Listar desafios abertos · Ver detalhes · Submeter solução (URL do repositório GitHub, URL de deploy opcional e descrição) · Acompanhar as próprias submissões, com nota, pontos e feedback · **Meu perfil** (apresentação, usuário do GitHub e portfólio público ou privado) |
+| **Visitante** | Cadastro como estudante ou empresa (com aceite dos Termos de Uso e da Política de Privacidade) · Login · **Ranking** (paginado, com busca) e **portfólios públicos**, sem precisar de conta |
+| **Estudante** | Listar desafios abertos, com busca por título ou empresa, filtro de dificuldade e paginação · Ver detalhes · Submeter solução (URL do repositório GitHub, URL de deploy opcional e descrição) · Acompanhar as próprias submissões, com nota, pontos e feedback · **Meu perfil** (apresentação, usuário do GitHub e portfólio público ou privado) |
 | **Empresa** | Criar desafios com nível de dificuldade e prazo · Editar, **publicar** e **encerrar** os próprios desafios · Ver as submissões recebidas, com o raio-X de cada entrega · Avaliar submissões (nota de 0 a 100, pontos fortes e pontos a melhorar) |
 | **Administrador** | Aprovar empresas (Django Admin) — empresa só publica desafios após aprovação · Consultar a trilha de auditoria · Corrigir avaliações · Gestão geral dos cadastros |
 | **Todos (logados)** | Dashboard com indicadores e gráficos por perfil · Página **Meus Dados** (LGPD) |
@@ -40,6 +40,8 @@ Empresa publica desafio → Estudante submete solução → Empresa avalia → P
 - A avaliação tem **nota de 0 a 100**, **pontos fortes** e **pontos a melhorar** (mínimo de 20 caracteres cada). Cada submissão recebe **uma única avaliação**, que a empresa **não pode alterar**; correções são feitas pelo administrador e ficam na auditoria.
 - **Pontos = nota × peso da dificuldade** (Iniciante ×1, Intermediário ×2, Avançado ×3). O peso é gravado na avaliação, então os pontos não mudam se o desafio for alterado depois.
 - O **ranking** é ordenado pelo total de pontos; o desempate é pela maior média de notas e, depois, pela ordem alfabética. É calculado por agregação no banco, sem tabela própria.
+- As **listagens são paginadas**: ranking com 50 estudantes por página (a busca filtra sem alterar a posição no ranking geral), projetos com 12 e submissões recebidas com 20.
+- **Limite de tentativas de login:** 5 falhas para o mesmo nome de usuário, ou 20 do mesmo IP, em 15 minutos bloqueiam novas tentativas até as falhas saírem dessa janela. Vale também para a área administrativa, e o início do bloqueio fica na auditoria.
 - O **portfólio** é público por padrão, nunca mostra o e-mail nem o texto do feedback, e o estudante pode torná-lo **privado** (a página passa a responder 404 e ele sai do ranking).
 
 ### Integração com API externa
@@ -132,6 +134,16 @@ python manage.py seed_demo --limpar          # remove só os dados de demonstra�
 
 As contas de demonstração usam e-mails do domínio reservado `demo.devstage.test`; é por essa marca que `--limpar` apaga apenas elas, sem tocar em contas reais. Rodar o comando duas vezes não duplica nada.
 
+### Massa de dados em volume (opcional)
+
+O comando `seed_volume` gera milhares de registros fictícios, para os testes de carga e para ver as listagens com volume. As contas usam o domínio `volume.devstage.test`, não têm senha utilizável e são removidas à parte, sem tocar nas de demonstração.
+
+```bash
+python manage.py seed_volume                 # 2.000 estudantes, 120 desafios, 10.000 submissões
+python manage.py seed_volume --estudantes 500 --desafios 40 --submissoes 3000
+python manage.py seed_volume --limpar        # remove só a massa de volume
+```
+
 ### Variáveis de ambiente
 
 | Variável | Descrição | Exemplo (local) |
@@ -157,30 +169,35 @@ python -m pytest --cov                                  # com o relatório de co
 
 | Tipo | Pasta | O que cobre |
 |---|---|---|
-| Unitários | `tests/unit/` | Classes e funções de regra de negócio, sem banco e sem rede: `Challenge` (peso, prazo, ciclo de vida, liberação da avaliação), `Evaluation` (cálculo dos pontos), formulários de desafio, de avaliação e de submissão, regras de submissão e de avaliação, cliente do GitHub (com a API simulada) e análise dos arquivos do repositório |
-| Integração | `tests/integration/` | Fluxos HTTP completos, com o PostgreSQL de teste: contas, desafios e ciclo de vida, submissão, avaliação e pontuação, painel da empresa, ranking, portfólio e perfil, dashboard, LGPD, versionamento dos termos, auditoria, raio-X da entrega, migrações de dados, desempenho com 1.000 submissões e o comando de dados de demonstração |
+| Unitários | `tests/unit/` | Classes e funções de regra de negócio, sem banco e sem rede: `Challenge` (peso, prazo, ciclo de vida, liberação da avaliação), `Evaluation` (cálculo dos pontos), formulários de desafio, de avaliação e de submissão, regras de submissão e de avaliação, decoradores de perfil, middlewares, cliente do GitHub (com a API simulada) e análise dos arquivos do repositório |
+| Integração | `tests/integration/` | Fluxos HTTP completos, com o PostgreSQL de teste: contas, desafios e ciclo de vida, submissão, avaliação e pontuação, painel da empresa, ranking, portfólio e perfil, dashboard, LGPD, versionamento dos termos, auditoria, limite de tentativas de login, raio-X da entrega, migrações de dados, paginação, desempenho com 10.000 submissões e os comandos de dados de demonstração e de volume |
 
-Resultado atual: **423 testes passando** (215 unitários e 208 de integração), com **99% de cobertura** do código da aplicação, medida pelo coverage.py. Só os testes unitários, que rodam sem banco em poucos segundos, cobrem 69%. A meta do projeto é de no mínimo 50%; a configuração da medição está em `.coveragerc`.
+Resultado atual: **457 testes passando** (215 unitários e 242 de integração), com **99% de cobertura** do código da aplicação, medida pelo coverage.py. Só os testes unitários, que rodam sem banco em poucos segundos, cobrem 62%. O teste de desempenho usa uma base de 10.000 submissões. A meta do projeto é de no mínimo 50%; a configuração da medição está em `.coveragerc`.
 
 ### Teste de carga
 
-O script `tests/load/carga.py` simula usuários navegando ao mesmo tempo (estudantes autenticados e visitantes) e mede o tempo de resposta por etapa. Ele só faz leituras e login, então pode ser repetido sem sujar a base.
+O script `tests/load/carga.py` mede o sistema sob carga de duas formas: em **etapas**, com usuários virtuais navegando com pausas (estudantes autenticados e visitantes), e em **rajada**, com um total fixo de requisições disparadas sem pausa. Ele só faz leituras e login, então pode ser repetido sem sujar a base.
 
 ```bash
+# rajada: 10.000 requisições nas páginas públicas, 100 conexões ao mesmo tempo
+python tests/load/carga.py --base http://localhost:8000 --rajada 10000 --concorrencia 100 --processos 4
+
+# etapas com usuários autenticados (a senha das contas vem de uma variável de ambiente)
 set CARGA_SENHA=senha-das-contas-de-demonstracao     # Windows  (Linux/macOS: export CARGA_SENHA=...)
-python tests/load/carga.py --base http://localhost:8000 --contas msato,cferraz,lprado --usuarios 10,25,50,100
+python tests/load/carga.py --base http://localhost:8000 --contas msato,cferraz,lprado --usuarios 25,50,100 --processos 4
 ```
 
-Resultado medido em ambiente local, com `DEBUG=False`, 3 processos da aplicação (como os 3 workers de produção) e uma base de 1.068 submissões:
+**Em produção** (Railway, 3 workers do Gunicorn com 4 threads cada), com a massa de volume carregada (2.000 estudantes e 10.000 submissões a mais), nas páginas públicas:
 
-| Usuários simultâneos | Requisições por segundo | Erros | Mediana | p95 | Máximo |
-|---:|---:|---:|---:|---:|---:|
-| 10 | 8,9 | 0 | 18 ms | 78 ms | 359 ms |
-| 25 | 21,2 | 0 | 21 ms | 93 ms | 428 ms |
-| 50 | 42,8 | 0 | 28 ms | 214 ms | 456 ms |
-| 100 | 72,6 | 0 | 125 ms | 1.058 ms | 1.785 ms |
+| Medição | Requisições | Erros | Req./s | Mediana | p95 |
+|---|---:|---:|---:|---:|---:|
+| Rajada, 100 conexões | 10.000 | 0 | 123,3 | 613 ms | 1.070 ms |
+| 50 visitantes navegando | 1.448 | 0 | 31,5 | 276 ms | 573 ms |
+| 100 visitantes navegando | 2.875 | 0 | 62,5 | 283 ms | 518 ms |
 
-A operação mais cara é o login (mediana de 0,65 s), por causa do hash PBKDF2 das senhas, que é lento de propósito. Os números valem para a máquina em que foram medidos, não para a infraestrutura de produção.
+Na rajada, o tempo dentro do servidor (medido pelos logs da borda do Railway) teve mediana de 312 ms; cerca de 215 ms de cada resposta são a viagem de rede até a região us-west2. Com 200 visitantes simultâneos, o servidor seguiu respondendo com mediana de 52 a 61 ms e sem erros, mas o gerador de carga observou esperas longas, que não foram explicadas.
+
+**Em ambiente local** (3 processos, `DEBUG=False`, mesma massa de volume), com usuários autenticados, o sistema fica dentro de 2 s no percentil 95 até 100 usuários ativos ao mesmo tempo. O ponto fraco é o **login em massa**: o hash PBKDF2 da senha custa cerca de 0,5 s por login, de propósito. Com 160 logins em 20 segundos, os processos ficam ocupados só com logins; com 4 threads por processo o ritmo sobe de 26 para 71 requisições por segundo, e por isso a produção passou a usar threads (`GUNICORN_CMD_ARGS=--threads=4`). O limite de tentativas de login também ajuda: a tentativa bloqueada não chega a calcular o hash.
 
 ---
 
@@ -195,7 +212,7 @@ O deploy é automático a cada push na branch **`main`** (fluxo: desenvolvimento
 | Start | `gunicorn config.wsgi --access-logfile -` |
 | Healthcheck | `/accounts/login/` |
 | Banco | PostgreSQL do próprio Railway, via `DATABASE_URL=${{Postgres.DATABASE_URL}}` (rede interna) |
-| Workers | `WEB_CONCURRENCY=3` (fórmula do gunicorn: 2 × CPUs + 1) |
+| Workers | `WEB_CONCURRENCY=3` (fórmula do gunicorn: 2 × CPUs + 1) e `GUNICORN_CMD_ARGS=--threads=4` (4 threads por worker, definido depois do teste de carga) |
 
 Decisões de produção:
 
