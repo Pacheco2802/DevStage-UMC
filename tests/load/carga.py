@@ -27,6 +27,7 @@ sem sujar a base. Depende apenas da biblioteca requests, que o projeto já usa.
 """
 import argparse
 import os
+from concurrent.futures import ProcessPoolExecutor
 import random
 import re
 import statistics
@@ -150,14 +151,31 @@ class UsuarioVirtual:
                 random.choices(paginas, weights=pesos)[0]()
 
 
-def rodar_etapa(bases, contas, senha, usuarios, duracao, visitantes, rampa=0):
+def rodar_etapa(bases, contas, senha, usuarios, duracao, visitantes, rampa=0, processos=1):
+    """Roda uma etapa. Com mais de um processo, os usuários virtuais são divididos entre eles:
+    um único processo Python não usa mais de um núcleo, e acima de algumas dezenas de usuários
+    quem ficaria lento seria o próprio gerador de carga, e não o sistema testado."""
+    if processos <= 1:
+        return _rodar_etapa_local(bases, contas, senha, usuarios, duracao, visitantes, rampa, 0)
+    partes = [usuarios // processos + (1 if indice < usuarios % processos else 0) for indice in range(processos)]
+    inicio = time.perf_counter()
+    with ProcessPoolExecutor(processos) as executor:
+        futuros = [
+            executor.submit(_rodar_etapa_local, bases, contas, senha, parte, duracao, visitantes, rampa, indice)
+            for indice, parte in enumerate(partes) if parte
+        ]
+        medidas = [medida for futuro in futuros for medida in futuro.result().medidas]
+    return Etapa(usuarios, time.perf_counter() - inicio, medidas)
+
+
+def _rodar_etapa_local(bases, contas, senha, usuarios, duracao, visitantes, rampa, deslocamento):
     etapa = Etapa(usuarios, duracao)
     parar = threading.Event()
     threads = []
     for numero in range(usuarios):
         # uma parte dos usuários é visitante, sem conta
-        conta = "" if numero < usuarios * visitantes else contas[numero % len(contas)]
-        usuario = UsuarioVirtual(bases[numero % len(bases)], conta, senha, etapa.medidas, parar)
+        conta = "" if numero < usuarios * visitantes else contas[(numero + deslocamento) % len(contas)]
+        usuario = UsuarioVirtual(bases[(numero + deslocamento) % len(bases)], conta, senha, etapa.medidas, parar)
         threads.append(threading.Thread(target=usuario.navegar, daemon=True))
     inicio = time.perf_counter()
     for thread in threads:
@@ -172,9 +190,22 @@ def rodar_etapa(bases, contas, senha, usuarios, duracao, visitantes, rampa=0):
     return etapa
 
 
-def rodar_rajada(bases, total, concorrencia):
+def rodar_rajada(bases, total, concorrencia, processos=1):
     """Dispara `total` requisições nas páginas públicas, o mais rápido possível, com `concorrencia`
     conexões ao mesmo tempo e sem pausa entre elas. Mede o teto do sistema, não o uso normal."""
+    if processos <= 1:
+        return _rodar_rajada_local(bases, total, concorrencia)
+    inicio = time.perf_counter()
+    with ProcessPoolExecutor(processos) as executor:
+        futuros = [
+            executor.submit(_rodar_rajada_local, bases, total // processos, max(1, concorrencia // processos))
+            for _ in range(processos)
+        ]
+        medidas = [medida for futuro in futuros for medida in futuro.result().medidas]
+    return Etapa(concorrencia, time.perf_counter() - inicio, medidas)
+
+
+def _rodar_rajada_local(bases, total, concorrencia):
     medidas, parar = [], threading.Event()
     explorador = UsuarioVirtual(bases[0], "", "", [], parar)
     explorador.ranking()  # descobre os portfólios públicos da primeira página do ranking
@@ -191,7 +222,7 @@ def rodar_rajada(bases, total, concorrencia):
             if indice is None:
                 return
             caminho = caminhos[indice % len(caminhos)]
-            pagina = "portfólio" if caminho.count("/") == 3 and "ranking" not in caminho else caminho
+            pagina = caminho if "ranking" in caminho or not caminho.startswith("/portfolio/") else "portfólio"
             usuario.pedir(pagina, "GET", caminho)
 
     threads = [threading.Thread(target=trabalhar, args=[numero], daemon=True) for numero in range(concorrencia)]
@@ -252,12 +283,14 @@ def main():
     parser.add_argument("--rajada", type=int, default=0,
                         help="em vez das etapas, dispara este total de requisições nas páginas públicas, sem pausa")
     parser.add_argument("--concorrencia", type=int, default=50, help="conexões simultâneas da rajada")
+    parser.add_argument("--processos", type=int, default=1,
+                        help="processos do gerador de carga; use mais de um acima de 50 usuários simultâneos")
     parser.add_argument("--saida", help="arquivo onde gravar o relatório em Markdown")
     args = parser.parse_args()
 
     if args.rajada:
         print(f"Rajada de {args.rajada} requisições com {args.concorrencia} conexões simultâneas...", flush=True)
-        etapa = rodar_rajada(args.base, args.rajada, args.concorrencia)
+        etapa = rodar_rajada(args.base, args.rajada, args.concorrencia, args.processos)
         texto = f"Rajada concluída em {etapa.duracao:.1f} s.\n\n" + relatorio([etapa]).replace(
             "Usuários simultâneos", "Conexões simultâneas")
         print(texto)
@@ -279,7 +312,7 @@ def main():
     etapas = []
     for usuarios in [int(valor) for valor in args.usuarios.split(",")]:
         print(f"Etapa com {usuarios} usuários simultâneos por {args.duracao:.0f} s...", flush=True)
-        etapas.append(rodar_etapa(args.base, contas, senha, usuarios, args.duracao, args.visitantes, args.rampa))
+        etapas.append(rodar_etapa(args.base, contas, senha, usuarios, args.duracao, args.visitantes, args.rampa, args.processos))
         medidas = etapas[-1].medidas
         erros = sum(1 for medida in medidas if not medida.ok) / max(1, len(medidas))
         if erros > args.limite_de_erros:
