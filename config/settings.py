@@ -164,6 +164,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
 
+# Autenticação com limite de tentativas de login (accounts/throttle.py)
+AUTHENTICATION_BACKENDS = ['accounts.backends.ThrottledModelBackend']
+
 # URLs de autenticação
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/challenges/"

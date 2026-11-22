@@ -13,7 +13,7 @@
             <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1]">{{ challenge.title }}</h1>
             <p class="text-sm text-muted mt-3">
                 Prazo: <span class="font-mono">{{ challenge.deadline|date:"d/m/Y H:i" }}</span> ·
-                {{ submissions|length }} submiss{{ submissions|length|pluralize:"ão,ões" }}
+                {{ submissions.paginator.count }} submiss{{ submissions.paginator.count|pluralize:"ão,ões" }}
             </p>
         </div>
         {% include "challenges/_status_badge.html" with status=challenge.status label=challenge.get_status_display %}
@@ -67,6 +67,7 @@
         </article>
         {% endfor %}
     </div>
+    {% include "components/pagination.html" with page=submissions %}
     {% else %}
     <div class="card p-12 text-center">
         <h2 class="font-display font-bold text-lg mb-2">Nenhuma submissão ainda</h2>

@@ -1,5 +1,5 @@
 """
-Verificação do RNF11: com uma base de 1.000 submissões avaliadas, a lista de desafios,
+Verificação do RNF11: com uma base de 10.000 submissões avaliadas, a lista de desafios,
 o ranking e o portfólio respondem em até 2 segundos e com um número fixo de consultas
 ao banco, que não cresce com a quantidade de registros.
 """
@@ -13,8 +13,8 @@ from django.utils import timezone
 from accounts.models import CompanyProfile, User
 from challenges.models import Challenge, Evaluation, Submission
 
-ESTUDANTES = 100
-DESAFIOS = 10  # 100 estudantes x 10 desafios = 1.000 submissões
+ESTUDANTES = 1000
+DESAFIOS = 10  # 1.000 estudantes x 10 desafios = 10.000 submissões
 LIMITE_SEGUNDOS = 2
 
 
@@ -34,7 +34,7 @@ def base_grande(db):
         for numero in range(DESAFIOS)
     ])
     estudantes = User.objects.bulk_create([
-        User(username=f"aluno{numero:03d}", first_name="Aluno", last_name=str(numero), role=User.Role.STUDENT)
+        User(username=f"aluno{numero:04d}", first_name="Aluno", last_name=str(numero), role=User.Role.STUDENT)
         for numero in range(ESTUDANTES)
     ])
     submissoes = Submission.objects.bulk_create([
@@ -62,17 +62,18 @@ def _medir(client, url):
 
 
 @pytest.mark.django_db
-def test_base_tem1000SubmissoesAvaliadas(base_grande):
-    assert Submission.objects.count() == 1000
-    assert Evaluation.objects.count() == 1000
+def test_base_tem10000SubmissoesAvaliadas(base_grande):
+    assert Submission.objects.count() == 10000
+    assert Evaluation.objects.count() == 10000
 
 
 @pytest.mark.django_db
 def test_listaDeDesafios_respondeEmAte2sComConsultasFixas(client, base_grande, django_assert_max_num_queries):
     client.force_login(base_grande["estudantes"][0])
 
-    # sessão, usuário, aceite dos termos (2) e a lista com a empresa junto (select_related)
-    with django_assert_max_num_queries(6):
+    # sessão, usuário, aceite dos termos (2), contagem para a paginação e a página da lista,
+    # com a empresa junto (select_related)
+    with django_assert_max_num_queries(7):
         response, duracao = _medir(client, reverse("challenges:list"))
 
     assert response.status_code == 200
@@ -87,7 +88,8 @@ def test_ranking_respondeEmAte2sComUmaConsultaDeAgregacao(client, base_grande, d
         response, duracao = _medir(client, reverse("portfolio:ranking"))
 
     assert response.status_code == 200
-    assert len(response.context["ranking"]) == ESTUDANTES
+    assert response.context["total"] == ESTUDANTES
+    assert len(response.context["ranking"]) == 50  # só uma página vai para a tela
     assert duracao < LIMITE_SEGUNDOS
 
 

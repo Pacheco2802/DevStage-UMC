@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from .models import User
 from .models import CompanyProfile
-from .models import ConsentLog, TermsVersion
+from .models import ConsentLog, LoginAttempt, TermsVersion
 
 # Register your models here.
 @admin.register(User)
@@ -34,6 +34,20 @@ class TermsVersionAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(LoginAttempt)
+class LoginAttemptAdmin(admin.ModelAdmin):
+    # Somente consulta: o administrador vê as tentativas que falharam; excluir uma libera o login
+    list_display = ["username", "ip", "failed_at"]
+    list_filter = ["failed_at"]
+    search_fields = ["username", "ip"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
         return False
 
 

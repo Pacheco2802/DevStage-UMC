@@ -9,6 +9,14 @@ Uso (a senha das contas vem de uma variável de ambiente, para não ficar no his
     set CARGA_SENHA=<senha das contas de demonstração>
     python tests/load/carga.py --base http://localhost:8000 --contas msato,cferraz,lprado
 
+Rajada: um total fixo de requisições, sem pausa, para medir o teto do sistema:
+
+    python tests/load/carga.py --base http://localhost:8000 --rajada 10000 --concorrencia 100
+
+Só com visitantes, nas páginas públicas, não é preciso senha:
+
+    python tests/load/carga.py --base https://devstage-umc.up.railway.app --visitantes 1
+
 Opções: --usuarios 10,25,50 (etapas), --duracao 60 (segundos por etapa), --rampa 20 (segundos em
 que os usuários vão entrando), --aquecimento 10,
 --saida relatorio.md.
@@ -19,6 +27,7 @@ sem sujar a base. Depende apenas da biblioteca requests, que o projeto já usa.
 """
 import argparse
 import os
+from concurrent.futures import ProcessPoolExecutor
 import random
 import re
 import statistics
@@ -55,6 +64,10 @@ class UsuarioVirtual:
         # Os cookies são guardados à mão: com DEBUG desligado eles vêm marcados como "Secure",
         # e uma biblioteca HTTP comum se recusaria a devolvê-los em um teste local por http://
         self.cookies = {}
+        # Uma sessão HTTP por usuário reaproveita a conexão, como o navegador faz: sem isso, cada
+        # requisição por HTTPS pagaria de novo a negociação da conexão segura
+        self.http = requests.Session()
+        self.http.headers["User-Agent"] = "DevStage-teste-de-carga"
         self.desafios, self.estudantes = [], []
 
     # ---------- HTTP ----------
@@ -62,11 +75,12 @@ class UsuarioVirtual:
         headers = {"Cookie": "; ".join(f"{nome}={valor}" for nome, valor in self.cookies.items())}
         inicio = time.perf_counter()
         try:
-            resposta = requests.request(
+            resposta = self.http.request(
                 metodo, self.base + caminho, headers=headers, timeout=TEMPO_LIMITE, allow_redirects=False, **kwargs
             )
             ok = resposta.status_code < 400
             self.cookies.update(resposta.cookies.get_dict())
+            self.http.cookies.clear()  # os cookies seguem só pelo cabeçalho montado acima
         except requests.RequestException:
             resposta, ok = None, False
         self.medidas.append(Medida(pagina, time.perf_counter() - inicio, ok))
@@ -109,6 +123,12 @@ class UsuarioVirtual:
     def meus_dados(self):
         self.pedir("meus dados", "GET", "/accounts/meus-dados/")
 
+    def tela_de_login(self):
+        self.pedir("tela de login", "GET", "/accounts/login/")
+
+    def termos(self):
+        self.pedir("termos de uso", "GET", "/termos/")
+
     # ---------- Roteiro ----------
     def navegar(self):
         if self.conta:
@@ -121,7 +141,8 @@ class UsuarioVirtual:
             ]
             self.lista_de_desafios()
         else:
-            roteiro = [[self.ranking, 50], [self.portfolio, 50]]  # visitante: só as páginas públicas
+            # visitante: só as páginas públicas
+            roteiro = [[self.ranking, 40], [self.portfolio, 40], [self.tela_de_login, 10], [self.termos, 10]]
             self.ranking()
         paginas, pesos = [item[0] for item in roteiro], [item[1] for item in roteiro]
         while not self.parar.is_set():
@@ -130,14 +151,31 @@ class UsuarioVirtual:
                 random.choices(paginas, weights=pesos)[0]()
 
 
-def rodar_etapa(bases, contas, senha, usuarios, duracao, visitantes, rampa=0):
+def rodar_etapa(bases, contas, senha, usuarios, duracao, visitantes, rampa=0, processos=1):
+    """Roda uma etapa. Com mais de um processo, os usuários virtuais são divididos entre eles:
+    um único processo Python não usa mais de um núcleo, e acima de algumas dezenas de usuários
+    quem ficaria lento seria o próprio gerador de carga, e não o sistema testado."""
+    if processos <= 1:
+        return _rodar_etapa_local(bases, contas, senha, usuarios, duracao, visitantes, rampa, 0)
+    partes = [usuarios // processos + (1 if indice < usuarios % processos else 0) for indice in range(processos)]
+    inicio = time.perf_counter()
+    with ProcessPoolExecutor(processos) as executor:
+        futuros = [
+            executor.submit(_rodar_etapa_local, bases, contas, senha, parte, duracao, visitantes, rampa, indice)
+            for indice, parte in enumerate(partes) if parte
+        ]
+        medidas = [medida for futuro in futuros for medida in futuro.result().medidas]
+    return Etapa(usuarios, time.perf_counter() - inicio, medidas)
+
+
+def _rodar_etapa_local(bases, contas, senha, usuarios, duracao, visitantes, rampa, deslocamento):
     etapa = Etapa(usuarios, duracao)
     parar = threading.Event()
     threads = []
     for numero in range(usuarios):
         # uma parte dos usuários é visitante, sem conta
-        conta = "" if numero < usuarios * visitantes else contas[numero % len(contas)]
-        usuario = UsuarioVirtual(bases[numero % len(bases)], conta, senha, etapa.medidas, parar)
+        conta = "" if numero < usuarios * visitantes else contas[(numero + deslocamento) % len(contas)]
+        usuario = UsuarioVirtual(bases[(numero + deslocamento) % len(bases)], conta, senha, etapa.medidas, parar)
         threads.append(threading.Thread(target=usuario.navegar, daemon=True))
     inicio = time.perf_counter()
     for thread in threads:
@@ -149,6 +187,51 @@ def rodar_etapa(bases, contas, senha, usuarios, duracao, visitantes, rampa=0):
     for thread in threads:
         thread.join(TEMPO_LIMITE + 5)
     etapa.duracao = time.perf_counter() - inicio
+    return etapa
+
+
+def rodar_rajada(bases, total, concorrencia, processos=1):
+    """Dispara `total` requisições nas páginas públicas, o mais rápido possível, com `concorrencia`
+    conexões ao mesmo tempo e sem pausa entre elas. Mede o teto do sistema, não o uso normal."""
+    if processos <= 1:
+        return _rodar_rajada_local(bases, total, concorrencia)
+    inicio = time.perf_counter()
+    with ProcessPoolExecutor(processos) as executor:
+        futuros = [
+            executor.submit(_rodar_rajada_local, bases, total // processos, max(1, concorrencia // processos))
+            for _ in range(processos)
+        ]
+        medidas = [medida for futuro in futuros for medida in futuro.result().medidas]
+    return Etapa(concorrencia, time.perf_counter() - inicio, medidas)
+
+
+def _rodar_rajada_local(bases, total, concorrencia):
+    medidas, parar = [], threading.Event()
+    explorador = UsuarioVirtual(bases[0], "", "", [], parar)
+    explorador.ranking()  # descobre os portfólios públicos da primeira página do ranking
+    caminhos = ["/portfolio/ranking/", "/accounts/login/", "/termos/", "/portfolio/ranking/?pagina=2"]
+    caminhos += [f"/portfolio/{nome}/" for nome in explorador.estudantes[:20]]
+    restantes = iter(range(total))
+    trava = threading.Lock()
+
+    def trabalhar(numero):
+        usuario = UsuarioVirtual(bases[numero % len(bases)], "", "", medidas, parar)
+        while True:
+            with trava:
+                indice = next(restantes, None)
+            if indice is None:
+                return
+            caminho = caminhos[indice % len(caminhos)]
+            pagina = caminho if "ranking" in caminho or not caminho.startswith("/portfolio/") else "portfólio"
+            usuario.pedir(pagina, "GET", caminho)
+
+    threads = [threading.Thread(target=trabalhar, args=[numero], daemon=True) for numero in range(concorrencia)]
+    inicio = time.perf_counter()
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    etapa = Etapa(concorrencia, time.perf_counter() - inicio, medidas)
     return etapa
 
 
@@ -189,17 +272,35 @@ def relatorio(etapas):
 def main():
     parser = argparse.ArgumentParser(description="Teste de carga do DevStage")
     parser.add_argument("--base", action="append", required=True, help="endereço do sistema; pode ser repetido")
-    parser.add_argument("--contas", required=True, help="nomes de usuário de estudantes, separados por vírgula")
+    parser.add_argument("--contas", default="", help="nomes de usuário de estudantes, separados por vírgula")
+    parser.add_argument("--limite-de-erros", type=float, default=0.05,
+                        help="fração de erros em uma etapa a partir da qual o teste para, sem passar à etapa seguinte")
     parser.add_argument("--usuarios", default="10,25,50", help="usuários simultâneos de cada etapa")
     parser.add_argument("--duracao", type=float, default=60, help="segundos de cada etapa")
     parser.add_argument("--visitantes", type=float, default=0.2, help="fração dos usuários que navega sem conta")
     parser.add_argument("--rampa", type=float, default=20, help="segundos, dentro da etapa, em que os usuários vão entrando")
     parser.add_argument("--aquecimento", type=float, default=10, help="segundos de aquecimento, que não entram no relatório")
+    parser.add_argument("--rajada", type=int, default=0,
+                        help="em vez das etapas, dispara este total de requisições nas páginas públicas, sem pausa")
+    parser.add_argument("--concorrencia", type=int, default=50, help="conexões simultâneas da rajada")
+    parser.add_argument("--processos", type=int, default=1,
+                        help="processos do gerador de carga; use mais de um acima de 50 usuários simultâneos")
     parser.add_argument("--saida", help="arquivo onde gravar o relatório em Markdown")
     args = parser.parse_args()
 
+    if args.rajada:
+        print(f"Rajada de {args.rajada} requisições com {args.concorrencia} conexões simultâneas...", flush=True)
+        etapa = rodar_rajada(args.base, args.rajada, args.concorrencia, args.processos)
+        texto = f"Rajada concluída em {etapa.duracao:.1f} s.\n\n" + relatorio([etapa]).replace(
+            "Usuários simultâneos", "Conexões simultâneas")
+        print(texto)
+        if args.saida:
+            with open(args.saida, "w", encoding="utf-8") as arquivo:
+                arquivo.write(texto + "\n")
+        return
+
     senha = os.environ.get("CARGA_SENHA", "")
-    if not senha:
+    if not senha and args.visitantes < 1:
         raise SystemExit("Defina a variável de ambiente CARGA_SENHA com a senha das contas usadas no teste.")
 
     contas = args.contas.split(",")
@@ -211,7 +312,13 @@ def main():
     etapas = []
     for usuarios in [int(valor) for valor in args.usuarios.split(",")]:
         print(f"Etapa com {usuarios} usuários simultâneos por {args.duracao:.0f} s...", flush=True)
-        etapas.append(rodar_etapa(args.base, contas, senha, usuarios, args.duracao, args.visitantes, args.rampa))
+        etapas.append(rodar_etapa(args.base, contas, senha, usuarios, args.duracao, args.visitantes, args.rampa, args.processos))
+        medidas = etapas[-1].medidas
+        erros = sum(1 for medida in medidas if not medida.ok) / max(1, len(medidas))
+        if erros > args.limite_de_erros:
+            # Não faz sentido aumentar a carga sobre um sistema que já está falhando
+            print(f"Parando: {erros:.0%} de erros nesta etapa.", flush=True)
+            break
     texto = relatorio(etapas)
     print(texto)
     if args.saida:
