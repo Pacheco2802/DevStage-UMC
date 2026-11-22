@@ -162,6 +162,26 @@ python -m pytest --cov                                  # com o relatório de co
 
 Resultado atual: **423 testes passando** (215 unitários e 208 de integração), com **99% de cobertura** do código da aplicação, medida pelo coverage.py. Só os testes unitários, que rodam sem banco em poucos segundos, cobrem 69%. A meta do projeto é de no mínimo 50%; a configuração da medição está em `.coveragerc`.
 
+### Teste de carga
+
+O script `tests/load/carga.py` simula usuários navegando ao mesmo tempo (estudantes autenticados e visitantes) e mede o tempo de resposta por etapa. Ele só faz leituras e login, então pode ser repetido sem sujar a base.
+
+```bash
+set CARGA_SENHA=senha-das-contas-de-demonstracao     # Windows  (Linux/macOS: export CARGA_SENHA=...)
+python tests/load/carga.py --base http://localhost:8000 --contas msato,cferraz,lprado --usuarios 10,25,50,100
+```
+
+Resultado medido em ambiente local, com `DEBUG=False`, 3 processos da aplicação (como os 3 workers de produção) e uma base de 1.068 submissões:
+
+| Usuários simultâneos | Requisições por segundo | Erros | Mediana | p95 | Máximo |
+|---:|---:|---:|---:|---:|---:|
+| 10 | 8,9 | 0 | 18 ms | 78 ms | 359 ms |
+| 25 | 21,2 | 0 | 21 ms | 93 ms | 428 ms |
+| 50 | 42,8 | 0 | 28 ms | 214 ms | 456 ms |
+| 100 | 72,6 | 0 | 125 ms | 1.058 ms | 1.785 ms |
+
+A operação mais cara é o login (mediana de 0,65 s), por causa do hash PBKDF2 das senhas, que é lento de propósito. Os números valem para a máquina em que foram medidos, não para a infraestrutura de produção.
+
 ---
 
 ## Deploy (Railway)
