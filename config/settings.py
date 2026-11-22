@@ -172,11 +172,12 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 # LGPD
 # A versão vigente dos termos não fica mais aqui: é a TermsVersion mais recente (accounts.models).
 DPO_NAME = env.str("DPO_NAME", default="Pedro Henrique Prado Pacheco")
+# Contato do encarregado, exibido no rodapé de todas as telas e na política de privacidade
+DPO_EMAIL = env.str("DPO_EMAIL", default="pedro.pacheco.ph1@gmail.com")
 
 # GitHub: token opcional, só de leitura pública. Sem ele a API aceita 60 requisições por hora
 # por IP (e o IP do Railway é compartilhado); com ele, 5.000.
 GITHUB_TOKEN = env.str("GITHUB_TOKEN", default="")
-DPO_EMAIL = env.str("DPO_EMAIL", default="dpo@devstage.com.br")
 
 # Django REST Framework: usado só nos endpoints JSON do dashboard.
 # Autenticação pela mesma sessão do site; nada de API pública.
