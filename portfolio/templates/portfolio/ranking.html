@@ -12,7 +12,7 @@
         </p>
     </div>
 
-    {% if ranking %}
+    {% if total %}
     <div x-data="ranking">
 
         {# ---------- Controles: visualização, busca e atalho para a própria posição ---------- #}
@@ -27,74 +27,84 @@
                 <div class="seg-glider" aria-hidden="true"></div>
             </div>
 
-            <input type="search" x-model="q" placeholder="Buscar estudante por nome ou usuário" aria-label="Buscar estudante"
-                   class="input !rounded-full flex-1 min-w-[220px]">
+            {# A busca vai ao servidor: com a lista paginada, o navegador só tem uma página dos estudantes #}
+            <form method="get" class="flex flex-1 min-w-[220px] gap-2" role="search">
+                <input type="search" name="q" value="{{ termo }}" placeholder="Buscar estudante por nome ou usuário" aria-label="Buscar estudante"
+                       class="input !rounded-full flex-1">
+                <button type="submit" class="btn-ghost">Buscar</button>
+            </form>
 
-            {% for aluno in ranking %}{% if aluno.pk == user.pk %}
-            <button type="button" @click="jump()" class="btn-ghost !text-light !border-[var(--light-line)] hover:bg-[var(--light-soft)]">
-                Minha posição · {{ forloop.counter }}º
-            </button>
-            {% endif %}{% endfor %}
+            {% if minha_linha %}
+            <a href="?pagina={{ minha_pagina }}#eu" class="btn-ghost !text-light !border-[var(--light-line)] hover:bg-[var(--light-soft)]">
+                Minha posição · {{ minha_linha.posicao }}º
+            </a>
+            {% endif %}
         </div>
 
-        <p class="text-sm text-muted mt-3" aria-live="polite">
-            <span x-show="!termo">{{ ranking|length }} estudante{{ ranking|length|pluralize:"s" }} avaliado{{ ranking|length|pluralize:"s" }}</span>
-            <span x-show="termo" x-cloak><span x-text="found"></span> de {{ ranking|length }} estudante{{ ranking|length|pluralize:"s" }}</span>
+        <p class="text-sm text-muted mt-3">
+            {% if termo %}
+            {{ ranking.paginator.count }} de {{ total }} estudante{{ total|pluralize:"s" }} ·
+            <a href="{% url 'portfolio:ranking' %}" class="link">limpar a busca</a>
+            {% else %}
+            {{ total }} estudante{{ total|pluralize:"s" }} avaliado{{ total|pluralize:"s" }}
+            {% endif %}
         </p>
 
+        {% if ranking %}
         {# ---------- Pódio: os 3 primeiros sob a luz, o restante em tabela ---------- #}
         <section x-show="view === 'podio'" data-view="podio">
-            {% if ranking|length >= 3 %}
-            <div x-show="!termo" class="grid grid-cols-3 gap-3 items-end max-w-2xl mx-auto mt-10">
-                <a href="{% url 'portfolio:detail' ranking.1.username %}" class="text-center group">
-                    <div class="font-semibold text-[15px] leading-tight group-hover:text-light transition-colors">{{ ranking.1.get_full_name|default:ranking.1.username }}</div>
-                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ ranking.1.avaliacoes }} avaliaç{{ ranking.1.avaliacoes|pluralize:"ão,ões" }} · média {{ ranking.1.media|floatformat:1 }}</div>
+            {% if podio %}
+            <div class="grid grid-cols-3 gap-3 items-end max-w-2xl mx-auto mt-10">
+                <a href="{% url 'portfolio:detail' podio.1.username %}" class="text-center group">
+                    <div class="font-semibold text-[15px] leading-tight group-hover:text-light transition-colors">{{ podio.1.nome }}</div>
+                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ podio.1.avaliacoes }} avaliaç{{ podio.1.avaliacoes|pluralize:"ão,ões" }} · média {{ podio.1.media|floatformat:1 }}</div>
                     <div class="h-28 rounded-t-xl border border-b-0 border-line bg-deep flex flex-col items-center justify-center gap-0.5">
-                        <span class="font-mono font-semibold text-2xl">{{ ranking.1.pontos }}</span>
+                        <span class="font-mono font-semibold text-2xl">{{ podio.1.pontos }}</span>
                         <span class="font-mono text-xs text-muted">2º</span>
                     </div>
                 </a>
-                <a href="{% url 'portfolio:detail' ranking.0.username %}" class="text-center group">
-                    <div class="font-semibold text-[15px] leading-tight group-hover:text-light transition-colors">{{ ranking.0.get_full_name|default:ranking.0.username }}</div>
-                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ ranking.0.avaliacoes }} avaliaç{{ ranking.0.avaliacoes|pluralize:"ão,ões" }} · média {{ ranking.0.media|floatformat:1 }}</div>
+                <a href="{% url 'portfolio:detail' podio.0.username %}" class="text-center group">
+                    <div class="font-semibold text-[15px] leading-tight group-hover:text-light transition-colors">{{ podio.0.nome }}</div>
+                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ podio.0.avaliacoes }} avaliaç{{ podio.0.avaliacoes|pluralize:"ão,ões" }} · média {{ podio.0.media|floatformat:1 }}</div>
                     <div class="h-[150px] rounded-t-xl border border-b-0 border-[rgba(246,196,83,0.55)] bg-gradient-to-b from-[rgba(246,196,83,0.34)] to-[rgba(246,196,83,0.04)] flex flex-col items-center justify-center gap-0.5">
-                        <span class="font-mono font-semibold text-[28px] text-light">{{ ranking.0.pontos }}</span>
+                        <span class="font-mono font-semibold text-[28px] text-light">{{ podio.0.pontos }}</span>
                         <span class="font-mono text-xs text-muted">1º</span>
                     </div>
                 </a>
-                <a href="{% url 'portfolio:detail' ranking.2.username %}" class="text-center group">
-                    <div class="font-semibold text-[15px] leading-tight group-hover:text-light transition-colors">{{ ranking.2.get_full_name|default:ranking.2.username }}</div>
-                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ ranking.2.avaliacoes }} avaliaç{{ ranking.2.avaliacoes|pluralize:"ão,ões" }} · média {{ ranking.2.media|floatformat:1 }}</div>
+                <a href="{% url 'portfolio:detail' podio.2.username %}" class="text-center group">
+                    <div class="font-semibold text-[15px] leading-tight group-hover:text-light transition-colors">{{ podio.2.nome }}</div>
+                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ podio.2.avaliacoes }} avaliaç{{ podio.2.avaliacoes|pluralize:"ão,ões" }} · média {{ podio.2.media|floatformat:1 }}</div>
                     <div class="h-[86px] rounded-t-xl border border-b-0 border-line bg-deep flex flex-col items-center justify-center gap-0.5">
-                        <span class="font-mono font-semibold text-2xl">{{ ranking.2.pontos }}</span>
+                        <span class="font-mono font-semibold text-2xl">{{ podio.2.pontos }}</span>
                         <span class="font-mono text-xs text-muted">3º</span>
                     </div>
                 </a>
             </div>
+            {% if ranking|length > 3 %}
+            <h2 class="font-display font-bold text-[15px] mt-9">Demais posições</h2>
+            {% endif %}
             {% endif %}
 
-            {% if ranking|length != 3 %}
-            <h2 x-show="!termo" class="font-display font-bold text-[15px] mt-9">{% if ranking|length > 3 %}Demais posições{% else %}Posições{% endif %}</h2>
-            {% endif %}
-            <div class="card overflow-x-auto mt-3" {% if ranking|length == 3 %}x-show="termo" x-cloak{% endif %}>
+            {% if not podio or ranking|length > 3 %}
+            <div class="card overflow-x-auto mt-3">
                 <table class="tbl">
                     <thead>
                         <tr><th>#</th><th>Estudante</th><th class="!text-right hidden sm:table-cell">Avaliações</th><th class="!text-right hidden sm:table-cell">Média</th><th class="!text-right">Pontos</th></tr>
                     </thead>
                     <tbody>
                         {% for aluno in ranking %}
-                        {% if ranking|length >= 3 %}
-                            {% include "portfolio/_ranking_row.html" with aluno=aluno pos=forloop.counter podio=True %}
-                        {% else %}
-                            {% include "portfolio/_ranking_row.html" with aluno=aluno pos=forloop.counter %}
+                        {# com o pódio na tela, os três primeiros não se repetem na tabela #}
+                        {% if not podio or aluno.posicao > 3 %}
+                            {% include "portfolio/_ranking_row.html" %}
                         {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+            {% endif %}
         </section>
 
-        {# ---------- Lista: tabela compacta com todos, para turmas grandes ---------- #}
+        {# ---------- Lista: tabela compacta, para turmas grandes ---------- #}
         <section x-show="view === 'lista'" x-cloak data-view="lista">
             <div class="card overflow-x-auto mt-5 [&_td]:!py-[7px]">
                 <table class="tbl">
@@ -103,7 +113,7 @@
                     </thead>
                     <tbody>
                         {% for aluno in ranking %}
-                        {% include "portfolio/_ranking_row.html" with aluno=aluno pos=forloop.counter %}
+                        {% include "portfolio/_ranking_row.html" %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -115,16 +125,13 @@
             <div class="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3.5 mt-5">
                 {% for aluno in ranking %}
                 <a href="{% url 'portfolio:detail' aluno.username %}"
-                   data-k="{{ aluno.get_full_name|lower }} {{ aluno.username|lower }}"
-                   {% if aluno.pk == user.pk %}data-me{% endif %}
-                   x-show="hit($el.dataset.k)"
                    class="card card-link p-4 flex flex-col gap-2.5 {% if aluno.pk == user.pk %}!border-[rgba(246,196,83,0.6)]{% endif %}">
                     <div class="flex items-center justify-between">
-                        <span class="font-mono font-semibold text-[13px] {% if forloop.counter <= 3 %}text-light{% else %}text-muted{% endif %}">{{ forloop.counter }}º{% if aluno.pk == user.pk %} · você{% endif %}</span>
+                        <span class="font-mono font-semibold text-[13px] {% if aluno.posicao <= 3 %}text-light{% else %}text-muted{% endif %}">{{ aluno.posicao }}º{% if aluno.pk == user.pk %} · você{% endif %}</span>
                         <span class="font-mono font-semibold text-2xl">{{ aluno.pontos }}<span class="text-xs text-muted font-normal"> pts</span></span>
                     </div>
                     <div>
-                        <div class="font-semibold text-[15px] leading-tight">{{ aluno.get_full_name|default:aluno.username }}</div>
+                        <div class="font-semibold text-[15px] leading-tight">{{ aluno.nome }}</div>
                         <div class="font-mono text-xs text-muted mt-0.5">@{{ aluno.username }}</div>
                     </div>
                     <div class="flex items-center justify-between pt-2.5 border-t border-line text-[12.5px] text-muted">
@@ -136,9 +143,10 @@
             </div>
         </section>
 
-        <p x-show="termo && found === 0" x-cloak class="text-center text-muted py-12">
-            Nenhum estudante encontrado com esse nome.
-        </p>
+        {% include "components/pagination.html" with page=ranking %}
+        {% else %}
+        <p class="text-center text-muted py-12">Nenhum estudante encontrado com esse nome.</p>
+        {% endif %}
     </div>
     {% else %}
     <div class="card p-12 text-center max-w-xl mx-auto">
@@ -151,41 +159,17 @@
 
 {% block extra_scripts %}
 <script>
-    // Comportamento da página de ranking: troca de visualização, busca e "minha posição".
-    // Tudo acontece no navegador, em cima da lista que a view já entrega.
+    // Troca de visualização do ranking, lembrada entre as visitas. A busca e a paginação são do servidor.
     document.addEventListener("alpine:init", () => {
         Alpine.data("ranking", () => ({
             view: "podio",
-            q: "",
-            keys: [],
-
             init() {
-                // uma chave de busca (nome + usuário) por estudante, lida da visualização em lista
-                this.keys = [...this.$root.querySelectorAll('[data-view="lista"] [data-k]')].map((el) => el.dataset.k);
                 try {
                     const salva = localStorage.getItem("devstage-ranking-view");
                     if (["podio", "lista", "cartoes"].includes(salva)) this.view = salva;
                 } catch (e) { /* sem acesso ao armazenamento: segue no padrão */ }
                 this.$watch("view", (valor) => {
                     try { localStorage.setItem("devstage-ranking-view", valor); } catch (e) { /* idem */ }
-                });
-            },
-
-            get termo() { return this.q.trim().toLowerCase(); },
-            hit(chave) { return !this.termo || chave.includes(this.termo); },
-            get found() { return this.keys.filter((chave) => this.hit(chave)).length; },
-
-            jump() {
-                this.q = "";
-                this.$nextTick(() => {
-                    // no pódio, a linha dos 3 primeiros fica oculta: cai para a lista
-                    let alvo = this.$root.querySelector(`[data-view="${this.view}"] [data-me]`);
-                    if (alvo && alvo.offsetParent === null) { this.view = "lista"; }
-                    this.$nextTick(() => {
-                        alvo = this.$root.querySelector(`[data-view="${this.view}"] [data-me]`);
-                        const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-                        if (alvo) alvo.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "center" });
-                    });
                 });
             },
         }));

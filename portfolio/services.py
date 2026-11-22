@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from django.contrib.auth import get_user_model
 from django.db.models import Avg, Count, Sum
 
@@ -28,6 +30,24 @@ def ranking_estudantes():
         )
         .order_by("-pontos", "-media", "username")
     )
+
+
+# Uma linha do ranking pronta para a tela: só o que a página mostra, já com a posição
+Linha = namedtuple("Linha", ["posicao", "pk", "username", "nome", "pontos", "media", "avaliacoes"])
+
+
+def linhas_do_ranking():
+    """Ranking completo em uma única consulta, como linhas leves em vez de objetos User.
+
+    A página mostra só um trecho por vez, mas a posição de cada estudante depende de todos os
+    que estão à frente, então a ordem inteira é calculada aqui e a paginação corta depois."""
+    dados = ranking_estudantes().values_list(
+        "pk", "username", "first_name", "last_name", "pontos", "media", "avaliacoes"
+    )
+    return [
+        Linha(posicao, pk, username, f"{nome} {sobrenome}".strip() or username, pontos, media, avaliacoes)
+        for posicao, (pk, username, nome, sobrenome, pontos, media, avaliacoes) in enumerate(dados, start=1)
+    ]
 
 
 def posicao_no_ranking(estudante):

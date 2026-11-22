@@ -2,14 +2,17 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import IntegrityError, transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import Http404
 from django.views.decorators.http import require_POST
 from .forms import SubmissionForm, ChallengeForm, EvaluationForm
 from .models import Challenge, Submission, Evaluation
 from .services import analyze_snapshot, duplicates_of, freeze_submission
 from core.decorators import approved_company_required, company_required, student_required
+from core.pagination import filtros_da_url, paginar
 
+DESAFIOS_POR_PAGINA = 12
+SUBMISSOES_POR_PAGINA = 20
 ALREADY_SUBMITTED = "Você já enviou uma submissão para este desafio."
 ALREADY_EVALUATED = (
     "Esta submissão já foi avaliada. A avaliação não pode ser alterada; "
@@ -20,8 +23,23 @@ ALREADY_EVALUATED = (
 @login_required
 def challenge_list(request):
     # select_related traz a empresa na mesma consulta, em vez de uma consulta por cartão (RNF11)
-    challenges = Challenge.objects.filter(status=Challenge.Status.OPEN).select_related("company")
-    return render(request, "challenges/list.html", {"challenges": challenges})
+    challenges = (
+        Challenge.objects.filter(status=Challenge.Status.OPEN).select_related("company").order_by("-created_at", "-pk")
+    )
+    termo = request.GET.get("q", "").strip()
+    if termo:
+        challenges = challenges.filter(Q(title__icontains=termo) | Q(company__company_name__icontains=termo))
+    dificuldade = request.GET.get("dificuldade", "")
+    if dificuldade in Challenge.Difficulty.values:
+        challenges = challenges.filter(difficulty=dificuldade)
+    return render(request, "challenges/list.html", {
+        # Só uma página vai para a tela: com centenas de desafios, a lista inteira ficaria inutilizável
+        "challenges": paginar(request, challenges, DESAFIOS_POR_PAGINA),
+        "termo": termo,
+        "dificuldade": dificuldade,
+        "dificuldades": Challenge.Difficulty.choices,
+        "filtros": filtros_da_url(request),
+    })
 
 
 @login_required
@@ -184,7 +202,7 @@ def challenge_submissions(request, pk):
     return render(
         request,
         "challenges/submissions.html",
-        {"challenge": challenge, "submissions": submissions},
+        {"challenge": challenge, "submissions": paginar(request, submissions, SUBMISSOES_POR_PAGINA)},
     )
 
 
