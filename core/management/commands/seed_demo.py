@@ -7,6 +7,7 @@ Uso:
 Toda conta criada aqui usa um e-mail do domínio reservado DOMINIO_DEMO. É essa marca que
 permite encontrar e apagar depois apenas o que é demonstração, sem tocar em contas reais.
 """
+import hashlib
 import os
 import random
 import unicodedata
@@ -17,8 +18,9 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
-from accounts.models import CompanyProfile, ConsentLog, TermsVersion
-from challenges.models import Challenge, Evaluation, Submission
+from accounts.models import CompanyProfile, ConsentLog, StudentProfile, TermsVersion
+from challenges.models import Challenge, Evaluation, RepoSnapshot, Submission
+from challenges.services import build_alerts
 
 User = get_user_model()
 
@@ -33,10 +35,12 @@ EMPRESAS = [
     ["mercadinho", "Mercadinho Digital", False],
 ]
 
-# publicado_ha e prazo_em são dias contados a partir de hoje (prazo negativo = já venceu)
+# publicado_ha e prazo_em são dias contados a partir de hoje (prazo negativo = já venceu).
+# Só recebem avaliação os desafios encerrados ou com o prazo vencido, como exige a regra do sistema.
 DESAFIOS = [
     {
         "empresa": "nimbo", "slug": "agenda-vet-api", "status": Challenge.Status.OPEN,
+        "dificuldade": Challenge.Difficulty.INTERMEDIATE,
         "publicado_ha": 24, "prazo_em": 18,
         "titulo": "API de agendamento para clínica veterinária",
         "descricao": (
@@ -46,8 +50,9 @@ DESAFIOS = [
         ),
     },
     {
-        "empresa": "nimbo", "slug": "encurtador-links", "status": Challenge.Status.OPEN,
-        "publicado_ha": 12, "prazo_em": 30,
+        "empresa": "nimbo", "slug": "encurtador-links", "status": Challenge.Status.CLOSED,
+        "dificuldade": Challenge.Difficulty.BEGINNER,
+        "publicado_ha": 30, "prazo_em": -6,
         "titulo": "Encurtador de links com estatísticas de acesso",
         "descricao": (
             "Crie um encurtador de URLs que registre os acessos por dia e mostre um resumo por link.\n\n"
@@ -56,6 +61,7 @@ DESAFIOS = [
     },
     {
         "empresa": "nimbo", "slug": "importador-nfe", "status": Challenge.Status.CLOSED,
+        "dificuldade": Challenge.Difficulty.ADVANCED,
         "publicado_ha": 40, "prazo_em": -4,
         "titulo": "Importador de notas fiscais em XML",
         "descricao": (
@@ -65,13 +71,15 @@ DESAFIOS = [
     },
     {
         "empresa": "nimbo", "slug": "lista-tarefas", "status": Challenge.Status.DRAFT,
+        "dificuldade": Challenge.Difficulty.BEGINNER,
         "publicado_ha": 2, "prazo_em": 45,
         "titulo": "Aplicativo de lista de tarefas com lembretes",
         "descricao": "Rascunho: a empresa ainda está definindo o escopo deste desafio.",
     },
     {
         "empresa": "voltedge", "slug": "painel-energia", "status": Challenge.Status.OPEN,
-        "publicado_ha": 20, "prazo_em": 25,
+        "dificuldade": Challenge.Difficulty.INTERMEDIATE,
+        "publicado_ha": 26, "prazo_em": -2,
         "titulo": "Painel de consumo de energia por setor",
         "descricao": (
             "A partir de uma planilha de leituras, monte um painel que mostre o consumo por setor e "
@@ -81,6 +89,7 @@ DESAFIOS = [
     },
     {
         "empresa": "voltedge", "slug": "simulador-conta-luz", "status": Challenge.Status.OPEN,
+        "dificuldade": Challenge.Difficulty.BEGINNER,
         "publicado_ha": 8, "prazo_em": 35,
         "titulo": "Simulador de conta de luz por bandeira tarifária",
         "descricao": (
@@ -91,6 +100,7 @@ DESAFIOS = [
     },
     {
         "empresa": "voltedge", "slug": "coletor-leituras", "status": Challenge.Status.CLOSED,
+        "dificuldade": Challenge.Difficulty.INTERMEDIATE,
         "publicado_ha": 38, "prazo_em": -9,
         "titulo": "Coletor de leituras de medidores via CSV",
         "descricao": (
@@ -114,14 +124,41 @@ NOTAS_DO_ESTUDANTE = [
     "Comecei pelos testes das regras principais e só depois fiz a interface. Detalhes no README.",
 ]
 
-FEEDBACKS = [
-    "Código bem organizado e testes cobrindo as regras principais. Faltou tratar entradas duplicadas.",
-    "Boa separação em camadas e README claro. Vale revisar os nomes das variáveis e validar as entradas.",
-    "Entrega funcional, mas sem testes automatizados. A lógica de negócio está misturada com as views.",
-    "Solução enxuta e bem documentada. O deploy funcionou de primeira e os commits contam a história do projeto.",
-    "Cumpriu o que foi pedido. O tratamento de erros poderia devolver mensagens mais claras para quem usa.",
-    "Bom domínio do problema. Para a próxima, quebre as funções longas e adicione testes dos casos de erro.",
+PONTOS_FORTES = [
+    "Código bem organizado, com testes cobrindo as regras principais.",
+    "Boa separação em camadas e README claro, com instruções de execução.",
+    "Solução enxuta e bem documentada. O deploy funcionou de primeira.",
+    "Os commits contam a história do projeto e as decisões estão explicadas.",
+    "Bom domínio do problema e tratamento cuidadoso das entradas inválidas.",
+    "Entrega funcional, que cumpre tudo o que o desafio pedia.",
 ]
+
+PONTOS_A_MELHORAR = [
+    "Faltou tratar entradas duplicadas e documentar os casos de erro.",
+    "Vale revisar os nomes das variáveis e quebrar as funções mais longas.",
+    "A lógica de negócio está misturada com as views; separe em uma camada própria.",
+    "As mensagens de erro poderiam ser mais claras para quem usa o sistema.",
+    "Adicione testes automatizados para os casos de erro, não só para o caminho feliz.",
+    "O README não explica como rodar os testes nem as variáveis de ambiente.",
+]
+
+APRESENTACOES = [
+    "Estudante de Engenharia de Software. Gosto de back-end, bancos de dados e de código com testes.",
+    "Curso Análise e Desenvolvimento de Sistemas e estou em busca do primeiro estágio em desenvolvimento web.",
+    "Interesse em APIs, automação e dados. Aprendo melhor construindo projetos do início ao fim.",
+    "",
+]
+
+
+# Perfis de repositório para o raio-X de demonstração: linguagem principal, percentuais e tecnologias
+PERFIS_RAIO_X = [
+    ["Python", [["Python", 78], ["HTML", 22]], ["Django", "pytest"]],
+    ["JavaScript", [["JavaScript", 85], ["CSS", 15]], ["Express", "Jest"]],
+    ["TypeScript", [["TypeScript", 90], ["CSS", 10]], ["Next.js", "React", "Tailwind CSS"]],
+    ["Java", [["Java", 100]], ["Spring Boot"]],
+]
+
+PRATICAS_RAIO_X = ["gitignore", "license", "docker", "ci", "env_example"]
 
 
 def gerar_username(nome_completo):
@@ -237,6 +274,7 @@ class Command(BaseCommand):
                 title=dados["titulo"],
                 description=dados["descricao"],
                 deadline=agora + timedelta(days=dados["prazo_em"]),
+                difficulty=dados["dificuldade"],
                 status=dados["status"],
             )
             # created_at é preenchido sozinho com "agora" (auto_now_add); o update grava a data retroativa
@@ -254,8 +292,51 @@ class Command(BaseCommand):
                 gerar_username(nome_completo), senha, User.Role.STUDENT, first_name=nome, last_name=sobrenome
             )
             if user:
+                # Perfil do portfólio; o último estudante da lista fica privado, para demonstrar a opção
+                StudentProfile.objects.create(
+                    user=user,
+                    bio=APRESENTACOES[len(estudantes) % len(APRESENTACOES)],
+                    github_username=user.username.replace(".", "-"),
+                    portfolio_public=nome_completo != ESTUDANTES[-1],
+                )
                 estudantes.append(user)
         return estudantes
+
+    def criar_raio_x(self, submissao, enviado_em):
+        """Raio-X fictício da entrega: os repositórios de demonstração não existem no GitHub,
+        então o relatório é montado aqui em vez de vir da análise real."""
+        # Sorteio próprio, pela URL: não muda a sequência que define notas e entregas
+        sorteio = random.Random(submissao.repo_url)
+        linguagem, linguagens, tecnologias = sorteio.choice(PERFIS_RAIO_X)
+        commits = sorteio.choice([1, 6, 9, 14, 21, 33])
+        dias = min(commits, sorteio.randint(1, 6))
+        snapshot = RepoSnapshot(
+            submission=submissao,
+            status=RepoSnapshot.Status.READY,
+            commit_sha=hashlib.sha1(submissao.repo_url.encode()).hexdigest(),
+            main_language=linguagem,
+            report={
+                "languages": [{"name": nome, "percent": percentual} for nome, percentual in linguagens],
+                "main_language": linguagem,
+                "files": sorteio.randint(8, 60),
+                "lines": sorteio.randint(300, 4000),
+                "readme": sorteio.choice(["ok", "ok", "ok", "minimo", "ausente"]),
+                "test_files": sorteio.choice([0, 0, 2, 4, 7, 12]),
+                "practices": sorteio.sample(PRATICAS_RAIO_X, k=sorteio.randint(1, 4)),
+                "stack": tecnologias,
+                "issues": sorteio.choice([[], [], [], [], ["env_file"]]),
+                "history": {
+                    "count": commits, "capped": False, "active_days": dias, "authors": 1,
+                    "first_at": (enviado_em - timedelta(days=dias)).isoformat(),
+                    "last_at": enviado_em.isoformat(),
+                },
+                "repo": {"fork": False, "parent": "", "created_at": ""},
+            },
+        )
+        snapshot.alerts = build_alerts(snapshot)
+        snapshot.save()
+        # O commit é registrado no momento da entrega
+        RepoSnapshot.objects.filter(pk=snapshot.pk).update(created_at=enviado_em)
 
     def criar_submissoes(self, estudantes, desafios, sorteio, agora):
         # Rascunho não recebe submissão
@@ -267,7 +348,7 @@ class Command(BaseCommand):
 
         for posicao, aluno in enumerate(estudantes):
             # Quem vem antes na lista tende a ter notas maiores, para o ranking ficar variado
-            nota_base = 9.3 - posicao * 0.17
+            nota_base = 93 - posicao * 1.7
             quantidade = min(sorteio.randint(2, 4), len(abertos_ou_encerrados))
 
             for desafio in sorteio.sample(abertos_ou_encerrados, k=quantidade):
@@ -286,17 +367,20 @@ class Command(BaseCommand):
                     description=sorteio.choice(NOTAS_DO_ESTUDANTE),
                 )
                 Submission.objects.filter(pk=submissao.pk).update(submitted_at=enviado_em)
+                self.criar_raio_x(submissao, enviado_em)
                 total_submissoes += 1
 
-                # Desafio encerrado já foi todo avaliado; nos abertos, parte ainda aguarda a empresa
+                # A avaliação só começa depois do prazo ou do encerramento (RN41). Desafio encerrado
+                # já foi todo avaliado; no que está com o prazo vencido, parte ainda aguarda a empresa
                 encerrado = desafio.status == Challenge.Status.CLOSED
-                if encerrado or sorteio.random() < 0.8:
-                    nota = round(nota_base + sorteio.uniform(-1.2, 1.2))
+                if encerrado or (desafio.deadline_passed and sorteio.random() < 0.7):
+                    nota = round(nota_base + sorteio.uniform(-12, 12))
                     avaliacao = Evaluation.objects.create(
                         submission=submissao,
                         evaluated_by=desafio.company.user,
-                        score=max(0, min(10, nota)),
-                        feedback=sorteio.choice(FEEDBACKS),
+                        score=max(0, min(100, nota)),
+                        strengths=sorteio.choice(PONTOS_FORTES),
+                        improvements=sorteio.choice(PONTOS_A_MELHORAR),
                     )
                     avaliado_em = min(agora, enviado_em + timedelta(days=sorteio.randint(1, 3)))
                     Evaluation.objects.filter(pk=avaliacao.pk).update(evaluated_at=avaliado_em)

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, CompanyProfile
+from .models import User, CompanyProfile, StudentProfile
 from django.db import transaction
 
 class StudentSignupForm(UserCreationForm):
@@ -21,6 +21,8 @@ class StudentSignupForm(UserCreationForm):
         user.email = self.cleaned_data["email"]
         if commit:
             user.save()
+            # Perfil do portfólio, público por padrão (RN53); a view grava tudo na mesma transação
+            StudentProfile.objects.create(user=user)
         return user
 
 class CompanySignupForm(UserCreationForm):

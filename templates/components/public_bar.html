@@ -1,0 +1,15 @@
+{% comment %}
+Barra das páginas públicas (ranking e portfólio) para o visitante, que não vê o menu principal.
+{% endcomment %}
+{% if not user.is_authenticated %}
+<div class="border-b border-line">
+    <div class="max-w-7xl mx-auto px-6 h-[60px] flex items-center justify-between gap-4">
+        <a href="{% url 'login' %}" class="font-display font-extrabold text-lg shrink-0">Dev<span class="text-light">Stage</span></a>
+        <nav class="flex items-center gap-5 text-sm" aria-label="Visitante">
+            <a href="{% url 'portfolio:ranking' %}" class="nav-link">Ranking</a>
+            <a href="{% url 'login' %}" class="nav-link">Entrar</a>
+            <a href="{% url 'signup_student' %}" class="btn-ghost hidden sm:inline-flex">Criar conta</a>
+        </nav>
+    </div>
+</div>
+{% endif %}

@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
 from django.conf import settings
 
@@ -28,6 +29,38 @@ class CompanyProfile(models.Model):
 
     def __str__(self):
         return self.company_name
+
+
+class StudentProfile(models.Model):
+    """Dados do portfólio do estudante: apresentação, usuário do GitHub e visibilidade."""
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="student_profile",
+    )
+    bio = models.TextField(max_length=500, blank=True)
+    github_username = models.CharField(
+        max_length=39,
+        blank=True,
+        validators=[
+            RegexValidator(
+                r"^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$",
+                "Informe apenas o nome de usuário do GitHub, sem @ e sem o endereço completo.",
+            )
+        ],
+    )
+    # RN53: o portfólio é público por padrão e o estudante pode torná-lo privado quando quiser
+    portfolio_public = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Perfil de {self.user.username}"
+
+    @classmethod
+    def for_user(cls, user):
+        """Perfil do estudante; contas criadas fora do cadastro (admin, por exemplo) ganham um agora."""
+        profile, _ = cls.objects.get_or_create(user=user)
+        return profile
 
 
 class TermsVersion(models.Model):

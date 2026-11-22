@@ -40,6 +40,10 @@ CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 # Cookies só trafegam por HTTPS em produção; localmente (DEBUG=True) http://
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
+# HSTS: o navegador que já acessou o site por HTTPS passa a recusar HTTP durante este período.
+# O redirecionamento de HTTP para HTTPS é feito pelo proxy do Railway, antes de chegar ao Django;
+# por isso SECURE_SSL_REDIRECT fica desligado (a verificação de saúde interna chega por HTTP).
+SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0 if DEBUG else 2592000)
 
 
 # Application definition
@@ -73,6 +77,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     # Depois da autenticação (precisa de request.user): exige o aceite da versão vigente dos termos
     'accounts.middleware.TermsConsentMiddleware',
+    # Guarda a requisição corrente para a auditoria registrar quem fez cada alteração
+    'audit.middleware.AuditMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -166,6 +172,10 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 # LGPD
 # A versão vigente dos termos não fica mais aqui: é a TermsVersion mais recente (accounts.models).
 DPO_NAME = env.str("DPO_NAME", default="Pedro Henrique Prado Pacheco")
+
+# GitHub: token opcional, só de leitura pública. Sem ele a API aceita 60 requisições por hora
+# por IP (e o IP do Railway é compartilhado); com ele, 5.000.
+GITHUB_TOKEN = env.str("GITHUB_TOKEN", default="")
 DPO_EMAIL = env.str("DPO_EMAIL", default="dpo@devstage.com.br")
 
 # Django REST Framework: usado só nos endpoints JSON do dashboard.

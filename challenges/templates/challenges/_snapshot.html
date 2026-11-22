@@ -1,0 +1,127 @@
+{% comment %}
+Raio-X da entrega, na tela de avaliação da empresa. É um bloco HTMX: o próprio bloco pede a
+análise ao servidor e é trocado pela resposta (hx-swap="outerHTML"), sem recarregar a página.
+Contexto: submission, snapshot (pode ser None em entregas antigas) e duplicates.
+{% endcomment %}
+<section id="raio-x" class="card p-5 mb-6"
+         hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+         hx-target="this" hx-swap="outerHTML"
+         {% if snapshot.status == "PENDING" %}hx-post="{% url 'challenges:snapshot' submission.pk %}" hx-trigger="load"{% endif %}>
+
+    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-4">
+        <h2 class="font-display font-bold">Raio-X da entrega</h2>
+        {% if snapshot.commit_sha %}
+        <p class="font-mono text-xs text-muted">
+            commit <a href="{{ snapshot.commit_url }}" target="_blank" rel="noopener" class="link">{{ snapshot.commit_sha|slice:":7" }}</a>
+            {% if not snapshot.registered_late %}· registrado em {{ snapshot.created_at|date:"d/m/Y H:i" }}{% endif %}
+        </p>
+        {% endif %}
+    </div>
+
+    {% if not snapshot %}
+    <p class="text-sm text-muted mb-4">
+        Esta entrega é anterior ao registro automático do commit. Gere o raio-X para registrar
+        o commit atual do repositório e analisar o código.
+    </p>
+    <button type="button" class="btn-ghost" hx-post="{% url 'challenges:snapshot' submission.pk %}" hx-target="#raio-x">Gerar raio-X</button>
+
+    {% elif snapshot.status == "PENDING" %}
+    <p class="text-sm text-muted">Analisando o repositório no commit entregue…</p>
+
+    {% elif snapshot.status == "ERROR" %}
+    <p class="text-sm text-danger mb-4">{{ snapshot.error_message }}</p>
+    <p class="text-xs text-muted mb-4">A avaliação continua disponível normalmente logo abaixo.</p>
+    <button type="button" class="btn-ghost" hx-post="{% url 'challenges:snapshot' submission.pk %}" hx-target="#raio-x">Tentar de novo</button>
+
+    {% else %}
+    {% if snapshot.registered_late %}
+    <p class="text-xs text-muted mb-4">
+        O commit não foi registrado no momento da entrega (enviada em {{ submission.submitted_at|date:"d/m/Y H:i" }}):
+        este é o commit que estava no repositório na primeira análise.
+    </p>
+    {% endif %}
+
+    {% if snapshot.alerts or duplicates %}
+    <div class="rounded-xl border border-[var(--danger-line)] bg-[var(--danger-soft)] p-4 mb-5">
+        <p class="eyebrow !text-danger mb-2">Pontos de atenção</p>
+        <ul class="text-sm space-y-1">
+            {% for alert in snapshot.alerts %}
+            <li>{{ alert.text }}</li>
+            {% endfor %}
+            {% for other in duplicates %}
+            <li>O mesmo repositório ou commit foi entregue por <strong>{{ other.student.username }}</strong> neste desafio.</li>
+            {% endfor %}
+        </ul>
+        <p class="text-xs text-muted mt-3">São indícios para conferência, não uma conclusão.</p>
+    </div>
+    {% endif %}
+
+    <div class="grid sm:grid-cols-2 gap-x-8 gap-y-5 text-sm">
+        <div>
+            <p class="eyebrow mb-2">Linguagens</p>
+            {% for language in snapshot.report.languages %}
+            <div class="flex items-center gap-3 mb-1.5">
+                <span class="w-24 shrink-0">{{ language.name }}</span>
+                <span class="flex-1 h-1.5 rounded-full bg-[var(--line)] overflow-hidden" aria-hidden="true">
+                    <span class="block h-full bg-[var(--light)]" style="width: {{ language.percent }}%"></span>
+                </span>
+                <span class="font-mono text-xs text-muted w-10 text-right">{{ language.percent }}%</span>
+            </div>
+            {% empty %}
+            <p class="text-muted">Nenhum arquivo de código reconhecido.</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            <p class="eyebrow mb-2">Tecnologias</p>
+            {% if snapshot.report.stack %}
+            <div class="flex flex-wrap gap-1.5">
+                {% for item in snapshot.report.stack %}
+                <span class="font-mono text-xs px-2 py-0.5 rounded-full border border-[var(--light-line)] text-light">{{ item }}</span>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted">Nenhuma identificada nos arquivos de dependências.</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <p class="eyebrow mb-2">Tamanho e histórico</p>
+            <p>
+                <span class="font-mono">{{ snapshot.report.files }}</span> arquivo{{ snapshot.report.files|pluralize }} de código ·
+                <span class="font-mono">{{ snapshot.report.lines }}</span> linha{{ snapshot.report.lines|pluralize }}
+            </p>
+            {% if snapshot.report.history.count %}
+            <p class="text-muted mt-1">
+                <span class="font-mono">{{ snapshot.report.history.count }}{% if snapshot.report.history.capped %}+{% endif %}</span>
+                commit{{ snapshot.report.history.count|pluralize }} em
+                <span class="font-mono">{{ snapshot.report.history.active_days }}</span>
+                dia{{ snapshot.report.history.active_days|pluralize }} de trabalho
+            </p>
+            {% endif %}
+        </div>
+
+        <div>
+            <p class="eyebrow mb-2">Checklist</p>
+            <ul class="space-y-1">
+                <li>
+                    {% if snapshot.report.readme == "ok" %}<span class="text-ok">✓</span> README com conteúdo
+                    {% elif snapshot.report.readme == "minimo" %}<span class="text-light">!</span> README muito curto
+                    {% else %}<span class="text-muted">—</span> <span class="text-muted">Sem README</span>{% endif %}
+                </li>
+                <li>
+                    {% if snapshot.report.test_files %}<span class="text-ok">✓</span>
+                    {{ snapshot.report.test_files }} arquivo{{ snapshot.report.test_files|pluralize }} de teste
+                    {% else %}<span class="text-muted">—</span> <span class="text-muted">Sem testes automatizados</span>{% endif %}
+                </li>
+                {% for label, present in snapshot.practices %}
+                <li>
+                    {% if present %}<span class="text-ok">✓</span> {{ label }}
+                    {% else %}<span class="text-muted">—</span> <span class="text-muted">{{ label }}</span>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+</section>

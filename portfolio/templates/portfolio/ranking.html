@@ -2,11 +2,13 @@
 {% block title %}Ranking · DevStage{% endblock %}
 
 {% block content %}
+{% include "components/public_bar.html" %}
 <div class="max-w-5xl mx-auto px-6 pt-14 pb-12">
     <div class="text-center mb-10">
         <h1 class="font-display font-extrabold text-4xl sm:text-[40px] tracking-tight leading-[1.08]">Ranking</h1>
         <p class="text-muted mt-3 max-w-xl mx-auto">
-            Média das notas dadas pelas empresas. Em caso de empate, fica na frente quem tem mais avaliações.
+            Soma dos pontos das submissões avaliadas: cada nota vale mais conforme a dificuldade do desafio
+            (Iniciante ×1, Intermediário ×2, Avançado ×3). Em caso de empate, fica na frente quem tem a maior média.
         </p>
     </div>
 
@@ -46,25 +48,25 @@
             <div x-show="!termo" class="grid grid-cols-3 gap-3 items-end max-w-2xl mx-auto mt-10">
                 <a href="{% url 'portfolio:detail' ranking.1.username %}" class="text-center group">
                     <div class="font-semibold text-[15px] leading-tight group-hover:text-light transition-colors">{{ ranking.1.get_full_name|default:ranking.1.username }}</div>
-                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ ranking.1.avaliacoes }} avaliaç{{ ranking.1.avaliacoes|pluralize:"ão,ões" }}</div>
+                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ ranking.1.avaliacoes }} avaliaç{{ ranking.1.avaliacoes|pluralize:"ão,ões" }} · média {{ ranking.1.media|floatformat:1 }}</div>
                     <div class="h-28 rounded-t-xl border border-b-0 border-line bg-deep flex flex-col items-center justify-center gap-0.5">
-                        <span class="font-mono font-semibold text-2xl">{{ ranking.1.media|floatformat:1 }}</span>
+                        <span class="font-mono font-semibold text-2xl">{{ ranking.1.pontos }}</span>
                         <span class="font-mono text-xs text-muted">2º</span>
                     </div>
                 </a>
                 <a href="{% url 'portfolio:detail' ranking.0.username %}" class="text-center group">
                     <div class="font-semibold text-[15px] leading-tight group-hover:text-light transition-colors">{{ ranking.0.get_full_name|default:ranking.0.username }}</div>
-                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ ranking.0.avaliacoes }} avaliaç{{ ranking.0.avaliacoes|pluralize:"ão,ões" }}</div>
+                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ ranking.0.avaliacoes }} avaliaç{{ ranking.0.avaliacoes|pluralize:"ão,ões" }} · média {{ ranking.0.media|floatformat:1 }}</div>
                     <div class="h-[150px] rounded-t-xl border border-b-0 border-[rgba(246,196,83,0.55)] bg-gradient-to-b from-[rgba(246,196,83,0.34)] to-[rgba(246,196,83,0.04)] flex flex-col items-center justify-center gap-0.5">
-                        <span class="font-mono font-semibold text-[28px] text-light">{{ ranking.0.media|floatformat:1 }}</span>
+                        <span class="font-mono font-semibold text-[28px] text-light">{{ ranking.0.pontos }}</span>
                         <span class="font-mono text-xs text-muted">1º</span>
                     </div>
                 </a>
                 <a href="{% url 'portfolio:detail' ranking.2.username %}" class="text-center group">
                     <div class="font-semibold text-[15px] leading-tight group-hover:text-light transition-colors">{{ ranking.2.get_full_name|default:ranking.2.username }}</div>
-                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ ranking.2.avaliacoes }} avaliaç{{ ranking.2.avaliacoes|pluralize:"ão,ões" }}</div>
+                    <div class="font-mono text-xs text-muted mt-0.5 mb-2.5">{{ ranking.2.avaliacoes }} avaliaç{{ ranking.2.avaliacoes|pluralize:"ão,ões" }} · média {{ ranking.2.media|floatformat:1 }}</div>
                     <div class="h-[86px] rounded-t-xl border border-b-0 border-line bg-deep flex flex-col items-center justify-center gap-0.5">
-                        <span class="font-mono font-semibold text-2xl">{{ ranking.2.media|floatformat:1 }}</span>
+                        <span class="font-mono font-semibold text-2xl">{{ ranking.2.pontos }}</span>
                         <span class="font-mono text-xs text-muted">3º</span>
                     </div>
                 </a>
@@ -77,7 +79,7 @@
             <div class="card overflow-x-auto mt-3" {% if ranking|length == 3 %}x-show="termo" x-cloak{% endif %}>
                 <table class="tbl">
                     <thead>
-                        <tr><th>#</th><th>Estudante</th><th class="!text-right hidden sm:table-cell">Avaliações</th><th class="!text-right">Média</th></tr>
+                        <tr><th>#</th><th>Estudante</th><th class="!text-right hidden sm:table-cell">Avaliações</th><th class="!text-right hidden sm:table-cell">Média</th><th class="!text-right">Pontos</th></tr>
                     </thead>
                     <tbody>
                         {% for aluno in ranking %}
@@ -97,7 +99,7 @@
             <div class="card overflow-x-auto mt-5 [&_td]:!py-[7px]">
                 <table class="tbl">
                     <thead>
-                        <tr><th>#</th><th>Estudante</th><th class="!text-right hidden sm:table-cell">Avaliações</th><th class="!text-right">Média</th></tr>
+                        <tr><th>#</th><th>Estudante</th><th class="!text-right hidden sm:table-cell">Avaliações</th><th class="!text-right hidden sm:table-cell">Média</th><th class="!text-right">Pontos</th></tr>
                     </thead>
                     <tbody>
                         {% for aluno in ranking %}
@@ -119,14 +121,14 @@
                    class="card card-link p-4 flex flex-col gap-2.5 {% if aluno.pk == user.pk %}!border-[rgba(246,196,83,0.6)]{% endif %}">
                     <div class="flex items-center justify-between">
                         <span class="font-mono font-semibold text-[13px] {% if forloop.counter <= 3 %}text-light{% else %}text-muted{% endif %}">{{ forloop.counter }}º{% if aluno.pk == user.pk %} · você{% endif %}</span>
-                        <span class="font-mono font-semibold text-2xl">{{ aluno.media|floatformat:1 }}</span>
+                        <span class="font-mono font-semibold text-2xl">{{ aluno.pontos }}<span class="text-xs text-muted font-normal"> pts</span></span>
                     </div>
                     <div>
                         <div class="font-semibold text-[15px] leading-tight">{{ aluno.get_full_name|default:aluno.username }}</div>
                         <div class="font-mono text-xs text-muted mt-0.5">@{{ aluno.username }}</div>
                     </div>
                     <div class="flex items-center justify-between pt-2.5 border-t border-line text-[12.5px] text-muted">
-                        <span>{{ aluno.avaliacoes }} avaliaç{{ aluno.avaliacoes|pluralize:"ão,ões" }}</span>
+                        <span>{{ aluno.avaliacoes }} avaliaç{{ aluno.avaliacoes|pluralize:"ão,ões" }} · média {{ aluno.media|floatformat:1 }}</span>
                         <span class="text-light font-semibold">Ver portfólio</span>
                     </div>
                 </a>
@@ -141,7 +143,7 @@
     {% else %}
     <div class="card p-12 text-center max-w-xl mx-auto">
         <h2 class="font-display font-bold text-lg mb-2">Ranking vazio</h2>
-        <p class="text-muted text-sm">O ranking aparece assim que as empresas avaliarem as primeiras submissões.</p>
+        <p class="text-muted text-sm">O ranking aparece assim que as empresas avaliarem as primeiras submissões de estudantes com portfólio público.</p>
     </div>
     {% endif %}
 </div>

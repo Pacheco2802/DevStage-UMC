@@ -160,7 +160,8 @@
     <section class="card p-6 !border-[var(--danger-line)]" x-data="{ open: false }">
         <h2 class="font-display font-bold text-danger mb-1">Excluir minha conta</h2>
         <p class="text-xs text-muted mb-4">
-            Eliminação (art. 18, VI) · nome, e-mail e usuário são anonimizados e a conta é desativada.
+            Eliminação (art. 18, VI) · nome, e-mail, usuário e os dados do perfil são anonimizados, o portfólio
+            deixa de ser exibido e a conta é desativada.
             Submissões e desafios permanecem sem vínculo identificável. Esta ação não pode ser desfeita.
         </p>
         <button type="button" x-show="!open" @click="open = true" class="btn-danger">
@@ -168,10 +169,10 @@
         </button>
         <form x-show="open" x-cloak method="post" action="{% url 'my_data_delete' %}" class="space-y-3">
             {% csrf_token %}
-            <label for="id_confirm_username" class="block text-sm">
-                Para confirmar, digite seu nome de usuário: <strong class="font-mono">{{ user.username }}</strong>
+            <label for="id_confirm_password" class="block text-sm">
+                Para confirmar, digite a sua senha:
             </label>
-            <input type="text" name="confirm_username" id="id_confirm_username" autocomplete="off" required
+            <input type="password" name="confirm_password" id="id_confirm_password" autocomplete="current-password" required
                    class="input sm:!w-80 focus:!border-[var(--danger)]">
             <div class="flex flex-wrap items-center gap-3">
                 <button type="submit" class="btn-danger-solid">Excluir definitivamente</button>
