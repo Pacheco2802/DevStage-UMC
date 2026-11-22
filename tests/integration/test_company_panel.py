@@ -78,12 +78,14 @@ def test_editar_get_deveTrazerPrazoNoFormatoDoInput(client, empresa, desafio_abe
 
 
 @pytest.mark.django_db
-def test_editar_postValido_deveEncerrarDesafio(client, empresa, desafio_aberto):
+def test_editar_postValido_deveSalvarSemMudarASituacao(client, empresa, desafio_aberto):
     client.force_login(empresa.user)
     prazo = timezone.localtime(desafio_aberto.deadline).strftime("%Y-%m-%dT%H:%M")
 
+    # A situação não faz parte da edição: mesmo enviada no POST, ela é ignorada (RN21)
     response = client.post(reverse("challenges:edit", args=[desafio_aberto.pk]), {
         "title": "API de pedidos v2", "description": "Nova descrição",
+        "difficulty": Challenge.Difficulty.ADVANCED,
         "deadline": prazo, "status": Challenge.Status.CLOSED,
     })
 
@@ -91,7 +93,8 @@ def test_editar_postValido_deveEncerrarDesafio(client, empresa, desafio_aberto):
     assert response.url == reverse("challenges:mine")
     desafio_aberto.refresh_from_db()
     assert desafio_aberto.title == "API de pedidos v2"
-    assert desafio_aberto.status == Challenge.Status.CLOSED
+    assert desafio_aberto.difficulty == Challenge.Difficulty.ADVANCED
+    assert desafio_aberto.status == Challenge.Status.OPEN
 
 
 @pytest.mark.django_db

@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from accounts.models import CompanyProfile, User
 from challenges.models import Challenge
+from integrations.github_client import RepoDownloadError
 
 # Cada teste monta o próprio cenário no banco de teste (criado e apagado pelo pytest-django)
 
@@ -15,6 +16,17 @@ def aceite_em_dia(monkeypatch):
     não têm aceite dos termos. Como o assunto aqui é outra regra, o middleware os trata como em dia.
     A regra do aceite é testada de verdade em test_termos.py, que desliga este atalho."""
     monkeypatch.setattr("accounts.middleware.has_current_consent", lambda user: True)
+
+
+@pytest.fixture(autouse=True)
+def github_sem_rede(monkeypatch):
+    """Nenhum teste consulta o GitHub de verdade. Por padrão ele "não responde", que é o caminho
+    em que a entrega é aceita sem o commit registrado; test_snapshot.py simula as respostas."""
+    def fora_do_ar(*args, **kwargs):
+        raise RepoDownloadError("GitHub desligado nos testes")
+
+    monkeypatch.setattr("challenges.services.list_commits", fora_do_ar)
+    monkeypatch.setattr("challenges.services.download_repo", fora_do_ar)
 
 
 @pytest.fixture
