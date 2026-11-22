@@ -9,6 +9,10 @@ Uso (a senha das contas vem de uma variável de ambiente, para não ficar no his
     set CARGA_SENHA=<senha das contas de demonstração>
     python tests/load/carga.py --base http://localhost:8000 --contas msato,cferraz,lprado
 
+Só com visitantes, nas páginas públicas, não é preciso senha:
+
+    python tests/load/carga.py --base https://devstage-umc.up.railway.app --visitantes 1
+
 Opções: --usuarios 10,25,50 (etapas), --duracao 60 (segundos por etapa), --rampa 20 (segundos em
 que os usuários vão entrando), --aquecimento 10,
 --saida relatorio.md.
@@ -55,6 +59,10 @@ class UsuarioVirtual:
         # Os cookies são guardados à mão: com DEBUG desligado eles vêm marcados como "Secure",
         # e uma biblioteca HTTP comum se recusaria a devolvê-los em um teste local por http://
         self.cookies = {}
+        # Uma sessão HTTP por usuário reaproveita a conexão, como o navegador faz: sem isso, cada
+        # requisição por HTTPS pagaria de novo a negociação da conexão segura
+        self.http = requests.Session()
+        self.http.headers["User-Agent"] = "DevStage-teste-de-carga"
         self.desafios, self.estudantes = [], []
 
     # ---------- HTTP ----------
@@ -62,11 +70,12 @@ class UsuarioVirtual:
         headers = {"Cookie": "; ".join(f"{nome}={valor}" for nome, valor in self.cookies.items())}
         inicio = time.perf_counter()
         try:
-            resposta = requests.request(
+            resposta = self.http.request(
                 metodo, self.base + caminho, headers=headers, timeout=TEMPO_LIMITE, allow_redirects=False, **kwargs
             )
             ok = resposta.status_code < 400
             self.cookies.update(resposta.cookies.get_dict())
+            self.http.cookies.clear()  # os cookies seguem só pelo cabeçalho montado acima
         except requests.RequestException:
             resposta, ok = None, False
         self.medidas.append(Medida(pagina, time.perf_counter() - inicio, ok))
@@ -109,6 +118,12 @@ class UsuarioVirtual:
     def meus_dados(self):
         self.pedir("meus dados", "GET", "/accounts/meus-dados/")
 
+    def tela_de_login(self):
+        self.pedir("tela de login", "GET", "/accounts/login/")
+
+    def termos(self):
+        self.pedir("termos de uso", "GET", "/termos/")
+
     # ---------- Roteiro ----------
     def navegar(self):
         if self.conta:
@@ -121,7 +136,8 @@ class UsuarioVirtual:
             ]
             self.lista_de_desafios()
         else:
-            roteiro = [[self.ranking, 50], [self.portfolio, 50]]  # visitante: só as páginas públicas
+            # visitante: só as páginas públicas
+            roteiro = [[self.ranking, 40], [self.portfolio, 40], [self.tela_de_login, 10], [self.termos, 10]]
             self.ranking()
         paginas, pesos = [item[0] for item in roteiro], [item[1] for item in roteiro]
         while not self.parar.is_set():
@@ -189,7 +205,9 @@ def relatorio(etapas):
 def main():
     parser = argparse.ArgumentParser(description="Teste de carga do DevStage")
     parser.add_argument("--base", action="append", required=True, help="endereço do sistema; pode ser repetido")
-    parser.add_argument("--contas", required=True, help="nomes de usuário de estudantes, separados por vírgula")
+    parser.add_argument("--contas", default="", help="nomes de usuário de estudantes, separados por vírgula")
+    parser.add_argument("--limite-de-erros", type=float, default=0.05,
+                        help="fração de erros em uma etapa a partir da qual o teste para, sem passar à etapa seguinte")
     parser.add_argument("--usuarios", default="10,25,50", help="usuários simultâneos de cada etapa")
     parser.add_argument("--duracao", type=float, default=60, help="segundos de cada etapa")
     parser.add_argument("--visitantes", type=float, default=0.2, help="fração dos usuários que navega sem conta")
@@ -199,7 +217,7 @@ def main():
     args = parser.parse_args()
 
     senha = os.environ.get("CARGA_SENHA", "")
-    if not senha:
+    if not senha and args.visitantes < 1:
         raise SystemExit("Defina a variável de ambiente CARGA_SENHA com a senha das contas usadas no teste.")
 
     contas = args.contas.split(",")
@@ -212,6 +230,12 @@ def main():
     for usuarios in [int(valor) for valor in args.usuarios.split(",")]:
         print(f"Etapa com {usuarios} usuários simultâneos por {args.duracao:.0f} s...", flush=True)
         etapas.append(rodar_etapa(args.base, contas, senha, usuarios, args.duracao, args.visitantes, args.rampa))
+        medidas = etapas[-1].medidas
+        erros = sum(1 for medida in medidas if not medida.ok) / max(1, len(medidas))
+        if erros > args.limite_de_erros:
+            # Não faz sentido aumentar a carga sobre um sistema que já está falhando
+            print(f"Parando: {erros:.0%} de erros nesta etapa.", flush=True)
+            break
     texto = relatorio(etapas)
     print(texto)
     if args.saida:
