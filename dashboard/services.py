@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Sum
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 
@@ -58,6 +58,7 @@ def _big_numbers(user, perfil, desafios, submissoes):
         {"rotulo": "Desafios abertos", "valor": abertos.count()},
         {"rotulo": "Abertos sem a sua submissão", "valor": abertos.exclude(submissions__student=user).count()},
         {"rotulo": "Nota média", "valor": _media(submissoes)},
+        {"rotulo": "Pontos", "valor": submissoes.aggregate(pontos=Sum("evaluation__points"))["pontos"] or 0},
     ]
 
 

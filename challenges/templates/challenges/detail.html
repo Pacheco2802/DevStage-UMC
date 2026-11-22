@@ -18,7 +18,9 @@
             <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1]">{{ challenge.title }}</h1>
             <p class="mt-3 text-sm text-muted">
                 Publicado em <span class="font-mono text-fg">{{ challenge.created_at|date:"d M Y" }}</span> ·
-                Prazo até <span class="font-mono text-light">{{ challenge.deadline|date:"d M Y — H:i" }}</span>
+                Prazo até <span class="font-mono text-light">{{ challenge.deadline|date:"d M Y — H:i" }}</span> ·
+                Dificuldade <span class="text-fg">{{ challenge.get_difficulty_display }}</span>
+                <span class="font-mono text-xs">(nota ×{{ challenge.weight }})</span>
             </p>
         </div>
 
@@ -47,8 +49,11 @@
                 </a>
                 {% if user_submission.evaluation %}
                 <div class="mt-4 pt-4 border-t border-[var(--ok-line)]">
-                    <div class="text-sm font-semibold mb-1">Avaliação da empresa: <span class="font-mono text-light">{{ user_submission.evaluation.score }}/10</span></div>
-                    <p class="text-sm text-muted whitespace-pre-line">{{ user_submission.evaluation.feedback }}</p>
+                    <div class="text-sm font-semibold mb-2">
+                        Avaliação da empresa: <span class="font-mono text-light">{{ user_submission.evaluation.score }}/100</span>
+                        <span class="font-mono text-muted font-normal">· {{ user_submission.evaluation.points }} pontos</span>
+                    </div>
+                    {% include "challenges/_feedback.html" with evaluation=user_submission.evaluation %}
                 </div>
                 {% endif %}
             </div>

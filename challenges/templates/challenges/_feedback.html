@@ -1,0 +1,16 @@
+{% comment %}
+Feedback da avaliação em duas partes (RN43). Recebe: evaluation.
+Avaliações anteriores à divisão do feedback só têm os pontos fortes preenchidos.
+{% endcomment %}
+<div class="space-y-2 text-sm">
+    <div>
+        <p class="text-xs font-semibold text-ok">Pontos fortes</p>
+        <p class="text-muted whitespace-pre-line">{{ evaluation.strengths }}</p>
+    </div>
+    {% if evaluation.improvements %}
+    <div>
+        <p class="text-xs font-semibold text-light">Pontos a melhorar</p>
+        <p class="text-muted whitespace-pre-line">{{ evaluation.improvements }}</p>
+    </div>
+    {% endif %}
+</div>

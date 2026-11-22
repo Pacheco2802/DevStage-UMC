@@ -21,7 +21,7 @@ def _desafio(status=Challenge.Status.OPEN, deadline=AGORA + timedelta(days=7)):
     return Challenge(title="API de pedidos", status=status, deadline=deadline)
 
 
-@patch("challenges.views.timezone.now", return_value=AGORA)
+@patch("challenges.models.timezone.now", return_value=AGORA)
 def test_deve_permitir_submissao_quando_estudante_desafio_aberto_e_no_prazo(_now):
     # Arrange
     user = _estudante()
@@ -51,7 +51,7 @@ def test_deve_permitir_submissao_quando_estudante_desafio_aberto_e_no_prazo(_now
     ],
     ids=["perfil-empresa", "status-rascunho", "status-encerrado", "prazo-vencido", "submissao-duplicada"],
 )
-@patch("challenges.views.timezone.now", return_value=AGORA)
+@patch("challenges.models.timezone.now", return_value=AGORA)
 def test_deve_bloquear_submissao_com_a_mensagem_da_regra_violada(
     _now, role, status, deadline, ja_submeteu, mensagem_esperada
 ):
@@ -68,7 +68,7 @@ def test_deve_bloquear_submissao_com_a_mensagem_da_regra_violada(
     assert reason == mensagem_esperada
 
 
-@patch("challenges.views.timezone.now", return_value=AGORA)
+@patch("challenges.models.timezone.now", return_value=AGORA)
 def test_deve_permitir_submissao_quando_prazo_termina_exatamente_agora(_now):
     # Arrange: deadline igual ao instante atual (fronteira da regra "deadline < agora")
     user = _estudante()
@@ -82,7 +82,7 @@ def test_deve_permitir_submissao_quando_prazo_termina_exatamente_agora(_now):
     assert reason == ""
 
 
-@patch("challenges.views.timezone.now", return_value=AGORA)
+@patch("challenges.models.timezone.now", return_value=AGORA)
 def test_deve_priorizar_bloqueio_de_perfil_quando_todas_as_regras_sao_violadas(_now):
     # Arrange: empresa, desafio encerrado, prazo vencido e submissão existente ao mesmo tempo
     user = User(username="empresa", role=User.Role.COMPANY)

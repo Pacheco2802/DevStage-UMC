@@ -6,7 +6,7 @@ from challenges.models import Challenge
 
 from core.utils import get_client_ip, get_user_agent
 
-from .models import ConsentLog, TermsVersion
+from .models import ConsentLog, StudentProfile, TermsVersion
 
 
 def record_consent(user, request):
@@ -49,6 +49,9 @@ def anonymize_user(user):
     user.is_active = False
     user.save()
 
+    # RN62: a apresentação e o usuário do GitHub também identificam o titular, e o portfólio sai do ar
+    StudentProfile.objects.filter(user=user).update(bio="", github_username="", portfolio_public=False)
+
     if user.role == user.Role.COMPANY and hasattr(user, "company_profile"):
         profile = user.company_profile
         profile.company_name = f"Empresa removida #{profile.pk}"
@@ -88,8 +91,11 @@ def export_user_data(user):
                 "deploy_url": s.deploy_url,
                 "descricao": s.description,
                 "enviada_em": s.submitted_at.isoformat(),
+                "commit_registrado": getattr(getattr(s, "snapshot", None), "commit_sha", ""),
+                "linguagem_principal": getattr(getattr(s, "snapshot", None), "main_language", ""),
+                "avaliacao": _evaluation_data(getattr(s, "evaluation", None)),
             }
-            for s in user.submissions.select_related("challenge")
+            for s in user.submissions.select_related("challenge", "snapshot", "evaluation")
         ],
         "registros_auditoria": [
             {
@@ -102,15 +108,45 @@ def export_user_data(user):
         ],
     }
 
+    if hasattr(user, "student_profile"):
+        profile = user.student_profile
+        data["perfil_estudante"] = {
+            "apresentacao": profile.bio,
+            "usuario_github": profile.github_username,
+            "portfolio_publico": profile.portfolio_public,
+        }
+
     if hasattr(user, "company_profile"):
         profile = user.company_profile
         data["empresa"] = {
             "nome": profile.company_name,
             "aprovada": profile.approved,
             "desafios_publicados": [
-                {"titulo": ch.title, "status": ch.get_status_display(), "prazo": ch.deadline.isoformat()}
+                {
+                    "titulo": ch.title,
+                    "dificuldade": ch.get_difficulty_display(),
+                    "status": ch.get_status_display(),
+                    "prazo": ch.deadline.isoformat(),
+                }
                 for ch in profile.challenges.all()
+            ],
+            # RN61: as avaliações que a empresa escreveu são dela; quem foi avaliado não é identificado
+            "avaliacoes_realizadas": [
+                {"desafio": ev.submission.challenge.title, **_evaluation_data(ev)}
+                for ev in user.evaluations_given.select_related("submission__challenge")
             ],
         }
 
     return data
+
+
+def _evaluation_data(evaluation):
+    if evaluation is None:
+        return None
+    return {
+        "nota": evaluation.score,
+        "pontos": evaluation.points,
+        "pontos_fortes": evaluation.strengths,
+        "pontos_a_melhorar": evaluation.improvements,
+        "avaliada_em": evaluation.evaluated_at.isoformat(),
+    }

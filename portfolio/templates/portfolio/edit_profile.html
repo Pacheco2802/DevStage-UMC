@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Meu perfil · DevStage{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-12">
+    <div class="mb-8">
+        <p class="eyebrow mb-3">Estudante · Meu perfil</p>
+        <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1]">O que aparece no seu portfólio</h1>
+        <p class="text-sm text-muted mt-3">
+            Seu portfólio fica em
+            <a href="{% url 'portfolio:detail' user.username %}" class="font-mono link">/portfolio/{{ user.username }}/</a>
+            e mostra seus projetos avaliados, com nota, pontos e posição no ranking. Seu e-mail nunca é exibido.
+        </p>
+    </div>
+
+    <form method="post" class="card p-6 sm:p-8 space-y-5">
+        {% csrf_token %}
+
+        <div>
+            <label for="{{ form.bio.id_for_label }}" class="label">{{ form.bio.label }} <span class="text-muted font-normal">(opcional, até 500 caracteres)</span></label>
+            <textarea name="{{ form.bio.name }}" id="{{ form.bio.id_for_label }}" rows="4" maxlength="500"
+                      placeholder="Conte em poucas linhas o que você estuda e o que gosta de construir."
+                      class="input">{{ form.bio.value|default_if_none:'' }}</textarea>
+            {% for error in form.bio.errors %}
+            <p class="err">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            <label for="{{ form.github_username.id_for_label }}" class="label">{{ form.github_username.label }} <span class="text-muted font-normal">(opcional)</span></label>
+            <input type="text" name="{{ form.github_username.name }}" id="{{ form.github_username.id_for_label }}"
+                   value="{{ form.github_username.value|default_if_none:'' }}" maxlength="39" autocomplete="off"
+                   placeholder="seu-usuario"
+                   class="input font-mono sm:!w-80">
+            <p class="help">Só o nome de usuário, sem @ e sem o endereço completo.</p>
+            {% for error in form.github_username.errors %}
+            <p class="err">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div class="rounded-xl p-4 bg-[var(--light-soft)] border border-[var(--light-line)]">
+            <label for="{{ form.portfolio_public.id_for_label }}" class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" name="{{ form.portfolio_public.name }}" id="{{ form.portfolio_public.id_for_label }}"
+                       {% if form.portfolio_public.value %}checked{% endif %} class="mt-1">
+                <span>
+                    <span class="block font-semibold text-sm">{{ form.portfolio_public.label }}</span>
+                    <span class="block text-xs text-muted mt-1">
+                        Marcado: qualquer pessoa com o endereço vê seu portfólio, e você aparece no ranking.
+                        Desmarcado: o endereço responde como não encontrado para os outros, e você sai do ranking.
+                        Você pode mudar isso quando quiser.
+                    </span>
+                </span>
+            </label>
+        </div>
+
+        <div class="flex items-center justify-end gap-4 pt-2">
+            <a href="{% url 'portfolio:detail' user.username %}" class="text-sm font-medium text-muted hover:text-fg transition-colors">Cancelar</a>
+            {% include "components/cta.html" with label="Salvar perfil" %}
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -9,7 +9,10 @@ urlpatterns = [
     path("novo/", views.challenge_create, name="create"),
     path("meus/", views.my_challenges, name="mine"),
     path("<int:pk>/editar/", views.challenge_edit, name="edit"),
+    path("<int:pk>/publicar/", views.challenge_publish, name="publish"),
+    path("<int:pk>/encerrar/", views.challenge_close, name="close"),
     path("<int:pk>/submissoes/", views.challenge_submissions, name="submissions"),
     path("minhas-submissoes/", views.my_submissions, name="my_submissions"),
     path("submissoes/<int:pk>/avaliar/", views.submission_evaluate, name="evaluate"),
+    path("submissoes/<int:pk>/raio-x/", views.submission_snapshot, name="snapshot"),
 ]
