@@ -4,9 +4,9 @@ import pytest
 from django.conf import settings
 from django.urls import reverse
 
-from accounts.models import ConsentLog, TermsVersion, User
+from accounts.models import ConsentLog, StudentProfile, TermsVersion, User
 from audit.models import AuditLog
-from challenges.models import Challenge, Submission
+from challenges.models import Challenge, Evaluation, Submission
 
 SENHA = "Senha-Forte-2026!"
 
@@ -171,10 +171,10 @@ def test_exportar_dados_retorna_json_e_registra_auditoria(client, estudante, con
 
 
 @pytest.mark.django_db
-def test_excluir_conta_com_confirmacao_errada_nao_anonimiza(client, estudante, consentimento):
+def test_excluir_conta_com_senha_errada_nao_anonimiza(client, estudante, consentimento):
     client.force_login(estudante)
 
-    client.post(reverse("my_data_delete"), {"confirm_username": "outro-nome"})
+    client.post(reverse("my_data_delete"), {"confirm_password": "senha-errada"})
 
     estudante.refresh_from_db()
     assert estudante.username == "aluno"
@@ -192,7 +192,7 @@ def test_excluir_conta_anonimiza_e_preserva_submissoes(client, estudante, consen
     )
     client.force_login(estudante)
 
-    client.post(reverse("my_data_delete"), {"confirm_username": "aluno"})
+    client.post(reverse("my_data_delete"), {"confirm_password": "senha-teste-123"})
 
     estudante.refresh_from_db()
     consentimento.refresh_from_db()
@@ -210,7 +210,7 @@ def test_excluir_conta_anonimiza_e_preserva_submissoes(client, estudante, consen
 def test_excluir_conta_de_empresa_encerra_desafios_abertos(client, empresa, desafio_aberto):
     client.force_login(empresa.user)
 
-    client.post(reverse("my_data_delete"), {"confirm_username": "empresa"})
+    client.post(reverse("my_data_delete"), {"confirm_password": "senha-teste-123"})
 
     desafio_aberto.refresh_from_db()
     empresa.refresh_from_db()
@@ -227,3 +227,101 @@ def test_politica_de_privacidade_exibe_contato_do_dpo(client):
     content = response.content.decode()
     assert settings.DPO_EMAIL in content
     assert settings.DPO_NAME in content
+
+
+# ---------- RF18: ajustes da entrega final ----------
+
+@pytest.mark.django_db
+def test_excluir_conta_sem_informar_senha_nao_anonimiza(client, estudante, consentimento):
+    client.force_login(estudante)
+
+    response = client.post(reverse("my_data_delete"), follow=True)
+
+    estudante.refresh_from_db()
+    assert estudante.is_active is True
+    assert "Senha incorreta" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_excluir_conta_registra_o_pedido_na_auditoria(client, estudante, consentimento):
+    client.force_login(estudante)
+
+    client.post(reverse("my_data_delete"), {"confirm_password": "senha-teste-123"}, REMOTE_ADDR="10.0.0.9")
+
+    registro = AuditLog.objects.get(target_model="AccountDeletion")
+    assert registro.user == estudante
+    assert registro.action == AuditLog.Action.DELETE
+    assert registro.ip == "10.0.0.9"
+
+
+@pytest.mark.django_db
+def test_revogar_consentimento_registra_o_pedido_na_auditoria(client, estudante, consentimento):
+    client.force_login(estudante)
+
+    client.post(reverse("revoke_consent"))
+
+    registro = AuditLog.objects.get(target_model="ConsentRevocation")
+    assert registro.user == estudante
+    assert registro.action == AuditLog.Action.UPDATE
+
+
+@pytest.mark.django_db
+def test_excluir_conta_apaga_dados_do_perfil_e_tira_o_portfolio_do_ar(client, estudante, consentimento):
+    StudentProfile.objects.create(user=estudante, bio="Sou o Fulano.", github_username="fulano")
+    client.force_login(estudante)
+
+    client.post(reverse("my_data_delete"), {"confirm_password": "senha-teste-123"})
+
+    perfil = StudentProfile.objects.get(user=estudante)
+    assert perfil.bio == "" and perfil.github_username == ""
+    assert perfil.portfolio_public is False
+    estudante.refresh_from_db()
+    assert client.get(reverse("portfolio:detail", args=[estudante.username])).status_code == 404
+
+
+@pytest.mark.django_db
+def test_cadastro_estudante_cria_perfil_com_portfolio_publico(client):
+    client.post(reverse("signup_student"), _dados_cadastro_estudante())
+
+    perfil = StudentProfile.objects.get(user__username="novoaluno")
+    assert perfil.portfolio_public is True
+
+
+@pytest.mark.django_db
+def test_exportar_dados_do_estudante_inclui_avaliacao_recebida_e_perfil(client, estudante, empresa, consentimento, desafio_aberto):
+    StudentProfile.objects.create(user=estudante, bio="Sou o Fulano.", github_username="fulano")
+    submissao = Submission.objects.create(
+        challenge=desafio_aberto, student=estudante,
+        repo_url="https://github.com/aluno/api", description="Minha solução",
+    )
+    Evaluation.objects.create(
+        submission=submissao, evaluated_by=empresa.user, score=80,
+        strengths="Boa organização do código.", improvements="Faltaram testes dos erros.",
+    )
+    client.force_login(estudante)
+
+    data = client.get(reverse("my_data_export")).json()
+
+    assert data["submissoes"][0]["avaliacao"]["nota"] == 80
+    assert data["submissoes"][0]["avaliacao"]["pontos"] == 80
+    assert data["submissoes"][0]["avaliacao"]["pontos_a_melhorar"] == "Faltaram testes dos erros."
+    assert data["perfil_estudante"] == {
+        "apresentacao": "Sou o Fulano.", "usuario_github": "fulano", "portfolio_publico": True,
+    }
+
+
+@pytest.mark.django_db
+def test_exportar_dados_da_empresa_inclui_avaliacoes_feitas_sem_identificar_o_estudante(client, estudante, empresa, desafio_aberto):
+    submissao = Submission.objects.create(
+        challenge=desafio_aberto, student=estudante,
+        repo_url="https://github.com/aluno/api", description="Minha solução",
+    )
+    Evaluation.objects.create(submission=submissao, evaluated_by=empresa.user, score=80, strengths="Boa organização do código.")
+    client.force_login(empresa.user)
+
+    response = client.get(reverse("my_data_export"))
+
+    data = response.json()
+    assert data["empresa"]["avaliacoes_realizadas"][0]["desafio"] == "API de pedidos"
+    assert data["empresa"]["avaliacoes_realizadas"][0]["nota"] == 80
+    assert estudante.username not in response.content.decode()  # RN61

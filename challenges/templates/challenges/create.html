@@ -9,7 +9,13 @@
         </p>
         <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1]">{% if challenge %}{{ challenge.title }}{% else %}Publicar um desafio técnico{% endif %}</h1>
         <p class="text-sm text-muted mt-3">
-            Descreva o problema, defina o prazo e escolha se abre para submissões imediatamente.
+            {% if challenge %}
+            O desafio pode ser editado enquanto for rascunho ou enquanto não tiver recebido nenhuma submissão.
+            Para publicar ou encerrar, use as ações em Meus desafios.
+            {% else %}
+            Descreva o problema, escolha a dificuldade, defina o prazo e decida se o desafio já abre para submissões.
+            A dificuldade define o peso da nota na pontuação: Iniciante ×1, Intermediário ×2, Avançado ×3.
+            {% endif %}
         </p>
     </div>
 
@@ -24,7 +30,7 @@
             <textarea name="{{ field.name }}" id="{{ field.id_for_label }}"
                       rows="6"
                       class="input">{{ field.value|default:'' }}</textarea>
-            {% elif field.name == "status" %}
+            {% elif field.name == "status" or field.name == "difficulty" %}
             <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="input">
                 {% for value, label in field.field.choices %}
                 <option value="{{ value }}" {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>

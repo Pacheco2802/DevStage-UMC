@@ -102,3 +102,32 @@ def test_fluxo_completo_estudante_envia_entrega_e_ve_a_submissao_registrada(
     assert "Entrega registrada com sucesso!" in body
     assert "Você já enviou uma solução para este desafio" in body
     assert DADOS_ENTREGA["repo_url"] in body
+
+
+# ---------- Corrida entre duas requisições: quem garante a regra é o banco ----------
+
+@pytest.mark.django_db
+def test_submeter_quandoOutraRequisicaoGravouPrimeiro_deveMostrarAMensagemDaRegraENaoDuplicar(
+    client, estudante, desafio_aberto, monkeypatch
+):
+    from challenges.models import Submission
+    from integrations.github_client import GitHubValidationResult
+    monkeypatch.setattr("challenges.forms.repo_exists", lambda url: GitHubValidationResult(True))
+    Submission.objects.create(
+        challenge=desafio_aberto, student=estudante, repo_url="https://github.com/aluno/api", description="Primeira",
+    )
+    # Simula a segunda requisição de um clique duplo: ela passou pela verificação da view
+    # antes de a primeira gravar, e só a restrição de unicidade do banco a impede
+    monkeypatch.setattr("challenges.views._check_can_submit", lambda *args: (True, ""))
+    client.force_login(estudante)
+
+    response = client.post(
+        reverse("challenges:detail", args=[desafio_aberto.pk]),
+        {"repo_url": "https://github.com/aluno/api", "description": "Segunda"},
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    assert Submission.objects.filter(challenge=desafio_aberto, student=estudante).count() == 1
+    mensagens = [str(mensagem) for mensagem in response.context["messages"]]
+    assert mensagens == ["Você já enviou uma submissão para este desafio."]

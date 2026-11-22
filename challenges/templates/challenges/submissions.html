@@ -48,16 +48,19 @@
             <div class="mt-4 pt-4 border-t border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 {% if submission.evaluation %}
                 <div class="text-sm">
-                    <span class="font-mono text-2xl font-semibold text-light">{{ submission.evaluation.score }}</span><span class="font-mono text-muted">/10</span>
-                    <span class="text-muted ml-2">{{ submission.evaluation.feedback|truncatechars:90 }}</span>
+                    <span class="font-mono text-2xl font-semibold text-light">{{ submission.evaluation.score }}</span><span class="font-mono text-muted">/100</span>
+                    <span class="font-mono text-muted ml-2">{{ submission.evaluation.points }} pontos</span>
+                    <span class="text-muted ml-2">{{ submission.evaluation.strengths|truncatechars:70 }}</span>
                 </div>
-                {% else %}
+                {% elif challenge.accepts_evaluation %}
                 <span class="eyebrow">Aguardando avaliação</span>
+                {% else %}
+                <span class="text-xs text-muted">A avaliação é liberada depois do prazo ou do encerramento do desafio.</span>
                 {% endif %}
                 {% if user.company_profile.approved %}
                 <a href="{% url 'challenges:evaluate' submission.pk %}"
-                   class="{% if submission.evaluation %}btn-ghost{% else %}btn{% endif %} w-fit shrink-0">
-                    {% if submission.evaluation %}Editar avaliação{% else %}Avaliar{% endif %}
+                   class="{% if submission.evaluation or not challenge.accepts_evaluation %}btn-ghost{% else %}btn{% endif %} w-fit shrink-0">
+                    {% if submission.evaluation %}Ver avaliação{% elif challenge.accepts_evaluation %}Avaliar{% else %}Ver entrega{% endif %}
                 </a>
                 {% endif %}
             </div>

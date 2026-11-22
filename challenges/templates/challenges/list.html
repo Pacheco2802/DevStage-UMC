@@ -22,6 +22,7 @@
             </div>
 
             <h2 class="font-display font-bold text-lg leading-snug">{{ challenge.title }}</h2>
+            <p class="font-mono text-xs text-muted">{{ challenge.get_difficulty_display }} · nota ×{{ challenge.weight }}</p>
 
             <p class="text-muted text-sm leading-relaxed flex-1">
                 {{ challenge.description|truncatewords:30 }}

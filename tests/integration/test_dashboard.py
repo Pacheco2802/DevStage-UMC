@@ -106,6 +106,7 @@ def test_bigNumbers_comoEstudante_deveMostrarSuaParticipacao(cenario, estudante)
         "Desafios abertos": 2,
         "Abertos sem a sua submissão": 1,
         "Nota média": None,
+        "Pontos": 0,
     }
     assert data["top_desafios"] == []
 
@@ -121,10 +122,12 @@ def test_bigNumbers_desafioComPrazoVencido_naoContaComoAberto(empresa, estudante
 @pytest.mark.django_db
 def test_bigNumbers_estudanteAvaliado_deveMostrarNotaMedia(empresa, estudante, desafio_aberto):
     outro = _criar_desafio(empresa, "Outro")
-    for desafio, nota in [(desafio_aberto, 7), (outro, 8)]:
-        Evaluation.objects.create(submission=_submeter(desafio, estudante), evaluated_by=empresa.user, score=nota, feedback="Bom trabalho.")
+    for desafio, nota in [(desafio_aberto, 70), (outro, 80)]:
+        Evaluation.objects.create(submission=_submeter(desafio, estudante), evaluated_by=empresa.user, score=nota, strengths="Bom trabalho.")
 
-    assert _numeros(dashboard_data(estudante))["Nota média"] == 7.5
+    numeros = _numeros(dashboard_data(estudante))
+    assert numeros["Nota média"] == 75
+    assert numeros["Pontos"] == 150
 
 
 # ---------- Séries dos gráficos ----------

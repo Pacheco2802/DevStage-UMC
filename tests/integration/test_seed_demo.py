@@ -3,8 +3,8 @@ from django.contrib.auth import authenticate
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
-from accounts.models import CompanyProfile, ConsentLog, User
-from challenges.models import Challenge, Evaluation, Submission
+from accounts.models import CompanyProfile, ConsentLog, StudentProfile, User
+from challenges.models import Challenge, Evaluation, RepoSnapshot, Submission
 from core.management.commands.seed_demo import DOMINIO_DEMO, VARIAVEL_SENHA
 from portfolio.services import ranking_estudantes
 
@@ -42,7 +42,8 @@ def test_seedDemo_devePopularEmpresasDesafiosEstudantesERanking(senha_definida):
 
     assert CompanyProfile.objects.filter(approved=True).count() == 2
     assert CompanyProfile.objects.filter(approved=False).count() == 1
-    assert Challenge.objects.filter(status=Challenge.Status.OPEN).count() == 4
+    assert Challenge.objects.filter(status=Challenge.Status.OPEN).count() == 3
+    assert Challenge.objects.values("difficulty").distinct().count() == 3
     assert contas_demo().filter(role=User.Role.STUDENT).count() == 24
     assert Evaluation.objects.count() > 0
     # todo estudante de demonstração entra com a senha informada e tem o aceite dos termos registrado
@@ -50,6 +51,22 @@ def test_seedDemo_devePopularEmpresasDesafiosEstudantesERanking(senha_definida):
     assert ConsentLog.objects.count() == contas_demo().count()
     # o pódio do ranking precisa de pelo menos três estudantes avaliados
     assert ranking_estudantes().count() >= 3
+    # cada estudante tem o perfil do portfólio, e um deles é privado para demonstrar a opção
+    assert StudentProfile.objects.count() == 24
+    assert StudentProfile.objects.filter(portfolio_public=False).count() == 1
+
+
+@pytest.mark.django_db
+def test_seedDemo_soAvaliaDesafioEncerradoOuComPrazoVencido(senha_definida):
+    call_command("seed_demo")
+
+    for avaliacao in Evaluation.objects.select_related("submission__challenge"):
+        desafio = avaliacao.submission.challenge
+        assert desafio.accepts_evaluation
+        assert avaliacao.points == avaliacao.score * desafio.weight
+        assert len(avaliacao.strengths) >= 20 and len(avaliacao.improvements) >= 20
+    # no desafio aberto com prazo vencido, parte das entregas ainda aguarda avaliação
+    assert Submission.objects.filter(evaluation__isnull=True, challenge__status=Challenge.Status.OPEN).exists()
 
 
 @pytest.mark.django_db
@@ -96,3 +113,15 @@ def test_seedDemo_limpar_deveRemoverSoOsDadosDeDemonstracao(senha_definida, estu
     # a conta e o desafio que não são de demonstração continuam no banco
     assert User.objects.filter(pk=estudante.pk).exists()
     assert Challenge.objects.filter(pk=desafio_aberto.pk).exists()
+
+
+@pytest.mark.django_db
+def test_seedDemo_registraORaioXDeCadaEntrega(senha_definida):
+    call_command("seed_demo")
+
+    assert RepoSnapshot.objects.count() == Submission.objects.count()
+    for snapshot in RepoSnapshot.objects.select_related("submission"):
+        assert snapshot.status == RepoSnapshot.Status.READY
+        assert len(snapshot.commit_sha) == 40
+        assert snapshot.main_language
+        assert snapshot.registered_late is False

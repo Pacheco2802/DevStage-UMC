@@ -86,15 +86,21 @@ def my_data(request):
     })
 
 
-@login_required
-def my_data_export(request):
+def _registrar_na_auditoria(request, action, target_model):
+    """RN64: exportação, revogação e exclusão ficam na trilha com quem pediu, de onde e quando."""
     AuditLog.objects.create(
         user=request.user,
-        action=AuditLog.Action.ACCESS,
-        target_model="DataExport",
+        action=action,
+        target_model=target_model,
+        target_id=str(request.user.pk),
         path=request.path,
         ip=get_client_ip(request),
     )
+
+
+@login_required
+def my_data_export(request):
+    _registrar_na_auditoria(request, AuditLog.Action.ACCESS, "DataExport")
     response = JsonResponse(export_user_data(request.user), json_dumps_params={"ensure_ascii": False, "indent": 2})
     response["Content-Disposition"] = f'attachment; filename="devstage-meus-dados-{request.user.pk}.json"'
     return response
@@ -103,14 +109,16 @@ def my_data_export(request):
 @login_required
 @require_POST
 def my_data_delete(request):
-    # Exige digitar o username para confirmar — evita exclusão por clique acidental
-    if request.POST.get("confirm_username") != request.user.username:
-        messages.error(request, "Confirmação inválida: digite exatamente o seu nome de usuário.")
+    # A senha confirma que quem pede a exclusão é o titular, e não alguém diante de uma sessão aberta
+    if not request.user.check_password(request.POST.get("confirm_password", "")):
+        messages.error(request, "Senha incorreta. A conta não foi alterada.")
         return redirect("my_data")
 
+    # O registro vem antes da anonimização e do logout, enquanto a requisição ainda tem o titular
+    _registrar_na_auditoria(request, AuditLog.Action.DELETE, "AccountDeletion")
     user = request.user
-    logout(request)
     anonymize_user(user)
+    logout(request)
     messages.success(request, "Sua conta foi eliminada e seus dados pessoais foram anonimizados.")
     return redirect("login")
 
@@ -118,8 +126,9 @@ def my_data_delete(request):
 @login_required
 @require_POST
 def revoke_consent_view(request):
+    _registrar_na_auditoria(request, AuditLog.Action.UPDATE, "ConsentRevocation")
     user = request.user
-    logout(request)
     revoke_consent(user)
+    logout(request)
     messages.success(request, "Consentimento revogado. Sua conta foi desativada.")
     return redirect("login")

@@ -274,6 +274,7 @@ class TestChallengeEndpointsHttp:
         return {
             "title": titulo,
             "description": "Construa uma API REST de pedidos.",
+            "difficulty": "BEGINNER",
             "deadline": prazo.strftime("%Y-%m-%dT%H:%M"),
             "status": status,
         }

@@ -10,7 +10,7 @@
 
     <div class="mb-8">
         <p class="eyebrow mb-3">
-            {{ submission.challenge.title }} · {% if evaluation %}Editar avaliação{% else %}Nova avaliação{% endif %}
+            {{ submission.challenge.title }} · {% if evaluation %}Avaliação registrada{% else %}Nova avaliação{% endif %}
         </p>
         <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1]">{{ submission.student.get_full_name|default:submission.student.username }}</h1>
         <p class="text-sm text-muted mt-3">
@@ -28,25 +28,66 @@
         <p class="text-sm text-muted whitespace-pre-line">{{ submission.description }}</p>
     </div>
 
+    {% include "challenges/_snapshot.html" %}
+
+    {% if evaluation %}
+    {# RN44: avaliação gravada não é alterada pela empresa; a tela passa a ser só de consulta #}
+    <div class="card p-6 sm:p-8">
+        <div class="flex flex-wrap items-baseline justify-between gap-3 mb-4">
+            <h2 class="font-display font-bold text-lg">Avaliação registrada</h2>
+            <p class="font-mono text-xs text-muted">{{ evaluation.evaluated_at|date:"d/m/Y H:i" }}</p>
+        </div>
+        <p class="mb-5">
+            <span class="font-mono text-4xl font-semibold text-light">{{ evaluation.score }}</span><span class="font-mono text-muted">/100</span>
+            <span class="font-mono text-sm text-muted ml-3">× {{ evaluation.weight }} ({{ submission.challenge.get_difficulty_display }}) = {{ evaluation.points }} pontos</span>
+        </p>
+        {% include "challenges/_feedback.html" %}
+        <p class="text-xs text-muted mt-5 pt-4 border-t border-line">
+            A avaliação não pode ser alterada. Se houver um erro, peça a correção ao administrador da plataforma.
+        </p>
+    </div>
+    {% elif block_reason %}
+    {# RN41: antes do prazo a empresa vê a entrega, mas ainda não avalia #}
+    <div class="rounded-2xl p-6 bg-[var(--light-soft)] border border-[var(--light-line)]">
+        <h2 class="font-display font-bold text-lg mb-2">Avaliação ainda não liberada</h2>
+        <p class="text-sm text-muted">
+            {{ block_reason }}
+            O prazo deste desafio termina em <span class="font-mono">{{ submission.challenge.deadline|date:"d/m/Y H:i" }}</span>.
+        </p>
+    </div>
+    {% else %}
     <form method="post" class="card p-6 sm:p-8 space-y-5">
         {% csrf_token %}
 
         <div>
             <label for="{{ form.score.id_for_label }}" class="label">{{ form.score.label }}</label>
             <input type="number" name="{{ form.score.name }}" id="{{ form.score.id_for_label }}"
-                   min="0" max="10" required value="{{ form.score.value|default_if_none:'' }}"
+                   min="0" max="100" required value="{{ form.score.value|default_if_none:'' }}"
                    class="input font-mono !w-32 text-lg">
+            <p class="help">
+                Desafio {{ submission.challenge.get_difficulty_display }}: os pontos do estudante serão a nota × {{ submission.challenge.weight }}.
+            </p>
             {% for error in form.score.errors %}
             <p class="err">{{ error }}</p>
             {% endfor %}
         </div>
 
         <div>
-            <label for="{{ form.feedback.id_for_label }}" class="label">{{ form.feedback.label }}</label>
-            <textarea name="{{ form.feedback.name }}" id="{{ form.feedback.id_for_label }}" rows="6" required
-                      placeholder="Pontos fortes, o que pode melhorar, decisões técnicas…"
-                      class="input">{{ form.feedback.value|default_if_none:'' }}</textarea>
-            {% for error in form.feedback.errors %}
+            <label for="{{ form.strengths.id_for_label }}" class="label">{{ form.strengths.label }}</label>
+            <textarea name="{{ form.strengths.name }}" id="{{ form.strengths.id_for_label }}" rows="4" required
+                      placeholder="O que a solução faz bem: organização, decisões técnicas, testes…"
+                      class="input">{{ form.strengths.value|default_if_none:'' }}</textarea>
+            {% for error in form.strengths.errors %}
+            <p class="err">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+        <div>
+            <label for="{{ form.improvements.id_for_label }}" class="label">{{ form.improvements.label }}</label>
+            <textarea name="{{ form.improvements.name }}" id="{{ form.improvements.id_for_label }}" rows="4" required
+                      placeholder="O que o estudante pode estudar ou corrigir na próxima entrega…"
+                      class="input">{{ form.improvements.value|default_if_none:'' }}</textarea>
+            {% for error in form.improvements.errors %}
             <p class="err">{{ error }}</p>
             {% endfor %}
         </div>
@@ -54,6 +95,10 @@
         {% for error in form.non_field_errors %}
         <p class="err">{{ error }}</p>
         {% endfor %}
+
+        <p class="text-xs text-muted">
+            Confira antes de salvar: depois de gravada, a avaliação não pode ser alterada.
+        </p>
 
         <div class="flex items-center justify-end gap-4 pt-2">
             <a href="{% url 'challenges:submissions' submission.challenge.pk %}"
@@ -63,5 +108,6 @@
             {% include "components/cta.html" with label="Salvar avaliação" %}
         </div>
     </form>
+    {% endif %}
 </div>
 {% endblock %}

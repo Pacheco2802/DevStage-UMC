@@ -1,0 +1,15 @@
+# Cobertura medida sobre o código da aplicação. Ficam de fora os próprios testes, as migrações
+# (geradas pelo Django) e os arquivos de inicialização que só rodam fora dos testes.
+[run]
+source = .
+omit =
+    tests/*
+    */migrations/*
+    */tests.py
+    manage.py
+    config/asgi.py
+    config/wsgi.py
+
+[report]
+show_missing = True
+skip_covered = True

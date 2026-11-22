@@ -7,7 +7,10 @@
         <p class="eyebrow mb-3">Estudante</p>
         <div class="flex flex-wrap items-end justify-between gap-4">
             <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1]">Minhas submissões</h1>
-            <a href="{% url 'portfolio:detail' user.username %}" class="text-sm link">Ver meu portfólio →</a>
+            <span class="flex flex-wrap gap-x-5 gap-y-1 text-sm">
+                <a href="{% url 'portfolio:edit_profile' %}" class="link">Editar meu perfil</a>
+                <a href="{% url 'portfolio:detail' user.username %}" class="link">Ver meu portfólio →</a>
+            </span>
         </div>
         <p class="text-sm text-muted mt-3">
             {{ submissions|length }} solu{{ submissions|length|pluralize:"ção,ções" }} enviada{{ submissions|length|pluralize:"s" }}
@@ -36,15 +39,31 @@
                     <td class="font-mono text-xs whitespace-nowrap">{{ submission.submitted_at|date:"d/m/Y H:i" }}</td>
                     <td>
                         <a href="{{ submission.repo_url }}" target="_blank" rel="noopener" class="font-mono text-xs link break-all">{{ submission.repo_url }}</a>
+                        {# Resumo do raio-X: o que foi registrado na entrega. Os pontos de atenção são só da empresa. #}
+                        {% if submission.snapshot.commit_sha %}
+                        <p class="font-mono text-xs text-muted mt-1.5">
+                            commit registrado
+                            <a href="{{ submission.snapshot.commit_url }}" target="_blank" rel="noopener" class="link">{{ submission.snapshot.commit_sha|slice:":7" }}</a>
+                        </p>
+                        {% endif %}
+                        {% if submission.snapshot.status == "READY" %}
+                        <p class="text-xs text-muted mt-1">
+                            {{ submission.snapshot.main_language|default:"Sem código reconhecido" }}{% for item in submission.snapshot.report.stack %} · {{ item }}{% endfor %}
+                            · {% if submission.snapshot.report.test_files %}com testes{% else %}sem testes{% endif %}
+                            · {% if submission.snapshot.report.readme == "ausente" %}sem README{% else %}com README{% endif %}
+                        </p>
+                        {% endif %}
                     </td>
                     <td>
                         {% if submission.evaluation %}
                         <details>
-                            <summary class="cursor-pointer whitespace-nowrap"><span class="font-mono font-semibold text-light">{{ submission.evaluation.score }}</span><span class="font-mono text-xs text-muted">/10 · ver feedback</span></summary>
-                            <p class="mt-2 text-xs text-muted whitespace-pre-line max-w-xs">{{ submission.evaluation.feedback }}</p>
+                            <summary class="cursor-pointer whitespace-nowrap"><span class="font-mono font-semibold text-light">{{ submission.evaluation.score }}</span><span class="font-mono text-xs text-muted">/100 · {{ submission.evaluation.points }} pontos · ver feedback</span></summary>
+                            <div class="mt-2 max-w-xs">
+                                {% include "challenges/_feedback.html" with evaluation=submission.evaluation %}
+                            </div>
                         </details>
                         {% else %}
-                        <span class="font-mono text-xs text-muted">Aguardando</span>
+                        <span class="font-mono text-xs text-muted">Aguardando avaliação</span>
                         {% endif %}
                     </td>
                 </tr>

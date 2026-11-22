@@ -28,6 +28,7 @@
             <thead>
                 <tr>
                     <th>Desafio</th>
+                    <th>Dificuldade</th>
                     <th>Status</th>
                     <th>Prazo</th>
                     <th class="!text-right">Submissões</th>
@@ -40,6 +41,7 @@
                     <td>
                         <a href="{% url 'challenges:detail' challenge.pk %}" class="font-semibold hover:text-light transition-colors">{{ challenge.title }}</a>
                     </td>
+                    <td class="text-muted whitespace-nowrap">{{ challenge.get_difficulty_display }} <span class="font-mono text-xs">×{{ challenge.weight }}</span></td>
                     <td>
                         {% include "challenges/_status_badge.html" with status=challenge.status label=challenge.get_status_display %}
                     </td>
@@ -48,8 +50,26 @@
                     <td class="text-right whitespace-nowrap">
                         <a href="{% url 'challenges:submissions' challenge.pk %}" class="link">Ver submissões</a>
                         {% if user.company_profile.approved %}
+                        {# Editar só aparece enquanto o desafio é rascunho ou está aberto sem submissões (RN22) #}
+                        {% if challenge.status == 'DRAFT' or challenge.status == 'OPEN' and challenge.total_submissions == 0 %}
                         <span class="text-line mx-1.5">|</span>
                         <a href="{% url 'challenges:edit' challenge.pk %}" class="text-muted hover:text-fg transition-colors">Editar</a>
+                        {% endif %}
+                        {# Ciclo de vida (RN21): Rascunho → Aberto → Encerrado #}
+                        {% if challenge.status == 'DRAFT' %}
+                        <span class="text-line mx-1.5">|</span>
+                        <form method="post" action="{% url 'challenges:publish' challenge.pk %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-light hover:underline">Publicar</button>
+                        </form>
+                        {% elif challenge.status == 'OPEN' %}
+                        <span class="text-line mx-1.5">|</span>
+                        <form method="post" action="{% url 'challenges:close' challenge.pk %}" class="inline"
+                              onsubmit="return confirm('Encerrar o desafio? Ele deixa de receber submissões e não pode ser reaberto.');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-muted hover:text-danger transition-colors">Encerrar</button>
+                        </form>
+                        {% endif %}
                         {% endif %}
                     </td>
                 </tr>

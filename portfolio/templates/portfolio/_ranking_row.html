@@ -13,12 +13,14 @@ já mostra os 3 primeiros — nesse caso a linha deles só aparece durante uma b
         {% if aluno.pk == user.pk %}<span class="ml-2 px-2 py-px rounded-full bg-light text-onlight font-mono text-[10.5px] font-semibold tracking-wide">VOCÊ</span>{% endif %}
     </td>
     <td class="font-mono text-[13px] text-muted text-right whitespace-nowrap hidden sm:table-cell">{{ aluno.avaliacoes }} avaliaç{{ aluno.avaliacoes|pluralize:"ão,ões" }}</td>
+    <td class="font-mono text-[13px] text-muted text-right whitespace-nowrap hidden sm:table-cell">{{ aluno.media|floatformat:1 }}</td>
     <td class="w-28 sm:w-44">
         <div class="flex items-center justify-end gap-2.5">
+            {# barra proporcional aos pontos do primeiro colocado #}
             <span class="hidden sm:block flex-1 h-[5px] rounded-full bg-deep overflow-hidden" aria-hidden="true">
-                <span class="block h-full rounded-full {% if pos <= 3 %}bg-light{% else %}bg-muted{% endif %}" style="width: {% widthratio aluno.media 10 100 %}%"></span>
+                <span class="block h-full rounded-full {% if pos <= 3 %}bg-light{% else %}bg-muted{% endif %}" style="width: {% widthratio aluno.pontos max_pontos 100 %}%"></span>
             </span>
-            <span class="font-mono font-semibold w-8 text-right">{{ aluno.media|floatformat:1 }}</span>
+            <span class="font-mono font-semibold w-10 text-right">{{ aluno.pontos }}</span>
         </div>
     </td>
 </tr>

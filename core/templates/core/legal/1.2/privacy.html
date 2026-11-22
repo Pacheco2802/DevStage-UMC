@@ -1,0 +1,143 @@
+{% extends "core/legal/_base.html" %}
+{% block title %}Política de Privacidade · DevStage{% endblock %}
+{% block legal_eyebrow %}Documento legal · LGPD{% endblock %}
+{% block legal_title %}Política de Privacidade{% endblock %}
+
+{% block legal_body %}
+        <section>
+            <p>
+                Esta política descreve como a plataforma <strong>DevStage</strong> coleta, utiliza,
+                armazena e protege dados pessoais dos seus usuários, em conformidade com a
+                <strong>Lei nº 13.709/2018 (LGPD)</strong>.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">1. Dados coletados</h2>
+            <p class="mb-2">Tratamos os seguintes dados, informados pelo usuário ou gerados pelo uso da plataforma:</p>
+            <ul class="list-disc list-inside space-y-1 text-muted">
+                <li><strong>Estudantes:</strong> nome de usuário, e-mail, primeiro nome, senha (armazenada como hash PBKDF2-SHA256).</li>
+                <li><strong>Perfil do estudante (opcional):</strong> apresentação, nome de usuário no GitHub e a escolha entre portfólio público ou privado.</li>
+                <li><strong>Empresas:</strong> nome de usuário, e-mail, senha (hash) e nome fantasia da empresa.</li>
+                <li><strong>Submissões:</strong> URL do repositório, URL de deploy (opcional) e descrição da solução.</li>
+                <li><strong>Repositório da entrega:</strong> o commit registrado no momento da entrega e dados públicos do repositório no GitHub (linguagens, tecnologias declaradas, quantidade de arquivos e de linhas, presença de README e de testes, e contagens e datas do histórico de commits). Nomes e e-mails dos autores dos commits não são armazenados.</li>
+                <li><strong>Avaliações:</strong> nota de 0 a 100, pontos fortes e pontos a melhorar atribuídos pela empresa a cada submissão, e os pontos calculados a partir da nota e da dificuldade do desafio.</li>
+                <li><strong>Consentimento:</strong> versão dos termos aceita, data e hora, IP de origem e navegador, guardados como prova do aceite.</li>
+                <li><strong>Auditoria:</strong> IP de origem, caminho acessado e horário das ações realizadas no sistema.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">2. Base legal (art. 7º LGPD)</h2>
+            <ul class="list-disc list-inside space-y-1 text-muted">
+                <li><strong>Consentimento</strong> do titular no ato do cadastro (art. 7º, I).</li>
+                <li><strong>Execução de contrato</strong> quando os dados são necessários para operar a plataforma (art. 7º, V).</li>
+                <li><strong>Cumprimento de obrigação legal</strong> para os registros de auditoria (art. 7º, II), tendo como referência a guarda de registros de acesso prevista no art. 15 da Lei nº 12.965/2014 (Marco Civil da Internet).</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">3. Finalidade do tratamento</h2>
+            <ul class="list-disc list-inside space-y-1 text-muted">
+                <li>Autenticar o usuário e controlar acesso a funcionalidades.</li>
+                <li>Permitir a submissão de soluções e a avaliação por empresas.</li>
+                <li>Exibir o ranking e o portfólio dos estudantes a partir das avaliações recebidas.</li>
+                <li>Manter trilha de auditoria para segurança e integridade da plataforma.</li>
+                <li>Integrar com a API do GitHub para verificar a existência dos repositórios informados, registrar o commit entregue e gerar o raio-X da entrega.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">4. Compartilhamento</h2>
+            <p>
+                Dados de submissão (repositório, descrição) são compartilhados com a empresa
+                responsável pelo desafio para fins de avaliação. O <strong>ranking e o portfólio
+                são páginas públicas</strong>: qualquer pessoa, mesmo sem conta, pode ver o nome, o nome
+                de usuário, a apresentação e o usuário do GitHub informados no perfil, as notas, os
+                pontos, a posição no ranking e os links do repositório e do deploy das submissões
+                avaliadas. O texto do feedback (pontos fortes e pontos a melhorar) é visto apenas pelo
+                estudante e pela empresa que o escreveu, e o e-mail nunca é exibido. O estudante pode
+                tornar o portfólio privado a qualquer momento, em Meu perfil: nesse caso a página deixa
+                de ser exibida a outras pessoas e ele sai do ranking. Contas criadas antes desta versão
+                começam com o portfólio privado, e a exibição pública depende da escolha do estudante.
+                A empresa responsável pelo desafio vê também o raio-X da entrega,
+                com pontos de atenção para conferência (por exemplo, repositório derivado de outro
+                ou entregue por mais de um estudante no mesmo desafio); o estudante vê o resumo da
+                própria entrega, e o portfólio exibe a linguagem e as tecnologias de cada projeto
+                avaliado. Não vendemos, alugamos ou cedemos dados pessoais a terceiros para fins
+                publicitários.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">5. Segurança</h2>
+            <ul class="list-disc list-inside space-y-1 text-muted">
+                <li>Senhas armazenadas com hash PBKDF2-SHA256 e salt aleatório por usuário.</li>
+                <li>Comunicação HTTPS em ambiente de produção.</li>
+                <li>Controle de acesso por perfil (RBAC) restringindo funcionalidades sensíveis.</li>
+                <li>Trilha de auditoria imutável (sem edição, apenas leitura por administradores).</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">6. Direitos do titular (art. 18 LGPD)</h2>
+            <p class="mb-2">Você pode, a qualquer momento, solicitar:</p>
+            <ul class="list-disc list-inside space-y-1 text-muted">
+                <li>Confirmação da existência de tratamento;</li>
+                <li>Acesso aos seus dados;</li>
+                <li>Correção de dados incompletos, inexatos ou desatualizados;</li>
+                <li>Anonimização, bloqueio ou eliminação de dados desnecessários;</li>
+                <li>Portabilidade dos dados a outro fornecedor;</li>
+                <li>Revogação do consentimento.</li>
+            </ul>
+            <p class="mt-2 text-muted">
+                Usuários autenticados exercem esses direitos diretamente na página
+                {% if user.is_authenticated %}<a href="{% url 'my_data' %}" class="link">Meus Dados</a>{% else %}<strong>Meus Dados</strong>{% endif %}:
+                visualizar todos os dados e o histórico de consentimento, corrigir dados cadastrais,
+                exportar os dados em JSON (portabilidade), revogar o consentimento e solicitar a
+                eliminação (anonimização) da conta. Demais solicitações podem ser enviadas ao
+                encarregado indicado no item 8.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">7. Retenção e exclusão</h2>
+            <p>
+                Dados pessoais são mantidos enquanto a conta estiver ativa. Registros de auditoria
+                são preservados por no mínimo 6 meses, prazo que tem como referência o art. 15 da
+                Lei nº 12.965/2014 (Marco Civil da Internet), ainda que a conta seja excluída. Ao solicitar a eliminação, os dados identificáveis da conta
+                (nome, e-mail e nome de usuário) são anonimizados e a conta é desativada;
+                desafios, submissões e avaliações permanecem sem vínculo identificável, para não
+                prejudicar outros usuários. O registro do consentimento é mantido como prova
+                do tratamento realizado (art. 16, I).
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">8. Encarregado (DPO)</h2>
+            <p class="mb-3">
+                Nos termos do art. 41 da LGPD, o encarregado pelo tratamento de dados pessoais é:
+            </p>
+            <div class="rounded-2xl border border-line bg-surface p-4 space-y-1">
+                <p><span class="text-muted">Nome:</span> {{ DPO_NAME }}</p>
+                <p>
+                    <span class="text-muted">E-mail:</span>
+                    <a href="mailto:{{ DPO_EMAIL }}" class="font-mono link">{{ DPO_EMAIL }}</a>
+                </p>
+            </div>
+            <p class="mt-3 text-muted">
+                Solicitações enviadas ao encarregado são respondidas em até 15 dias (art. 19, II).
+            </p>
+        </section>
+
+        <section>
+            <h2 class="font-display font-bold text-lg mb-2">9. Alterações desta política</h2>
+            <p>
+                Esta política e os Termos de Uso são versionados em conjunto. Cada alteração gera uma
+                nova versão numerada, publicada com a data e um resumo do que mudou; as versões
+                anteriores continuam disponíveis para consulta nesta página. No primeiro acesso após
+                a publicação, a plataforma pede um novo aceite, e cada aceite fica registrado com a
+                versão correspondente (item 1).
+            </p>
+        </section>
+{% endblock %}
