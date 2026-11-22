@@ -1,7 +1,11 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from .models import User, CompanyProfile, StudentProfile
 from django.db import transaction
+
+from core.utils import get_client_ip
+
+from . import throttle
 
 class StudentSignupForm(UserCreationForm):
     # Campo extra
@@ -51,6 +55,21 @@ class CompanySignupForm(UserCreationForm):
                 # appproved fica no default false do model
             )
         return user
+
+
+class LoginForm(AuthenticationForm):
+    """Formulário de login que avisa quando o acesso está bloqueado por excesso de tentativas.
+    Quem aplica o bloqueio é o backend de autenticação; aqui ele só ganha uma mensagem clara."""
+
+    def clean(self):
+        minutos = throttle.minutos_de_bloqueio(self.cleaned_data.get("username"), get_client_ip(self.request))
+        if minutos:
+            raise forms.ValidationError(
+                f"Muitas tentativas de login. Por segurança, o acesso está bloqueado. "
+                f"Tente novamente em {minutos} minuto{'s' if minutos > 1 else ''}.",
+                code="bloqueado",
+            )
+        return super().clean()
 
 
 class TermsAcceptForm(forms.Form):

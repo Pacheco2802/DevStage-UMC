@@ -1,0 +1,19 @@
+{% comment %}
+Navegação entre páginas de uma listagem. Recebe: page (página do Paginator) e filtros (os demais
+parâmetros da URL, já codificados, para a busca continuar valendo ao trocar de página).
+{% endcomment %}
+{% if page.paginator.num_pages > 1 %}
+<nav class="flex items-center justify-center gap-4 mt-8 text-sm" aria-label="Páginas">
+    {% if page.has_previous %}
+    <a href="?{% if filtros %}{{ filtros }}&amp;{% endif %}pagina={{ page.previous_page_number }}" class="btn-ghost">← Anterior</a>
+    {% else %}
+    <span class="btn-ghost opacity-40" aria-disabled="true">← Anterior</span>
+    {% endif %}
+    <span class="font-mono text-muted">página {{ page.number }} de {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}
+    <a href="?{% if filtros %}{{ filtros }}&amp;{% endif %}pagina={{ page.next_page_number }}" class="btn-ghost">Próxima →</a>
+    {% else %}
+    <span class="btn-ghost opacity-40" aria-disabled="true">Próxima →</span>
+    {% endif %}
+</nav>
+{% endif %}

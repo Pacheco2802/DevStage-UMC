@@ -63,6 +63,20 @@ class StudentProfile(models.Model):
         return profile
 
 
+class LoginAttempt(models.Model):
+    """Tentativa de login que falhou. Serve só para o limite de tentativas (accounts/throttle.py)
+    e é apagada depois de um dia."""
+    username = models.CharField(max_length=150, db_index=True)
+    ip = models.GenericIPAddressField(null=True, blank=True, db_index=True)
+    failed_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-failed_at"]
+
+    def __str__(self):
+        return f"{self.username} em {self.failed_at:%d/%m/%Y %H:%M}"
+
+
 class TermsVersion(models.Model):
     """Versão publicada dos Termos de Uso e da Política de Privacidade.
 
