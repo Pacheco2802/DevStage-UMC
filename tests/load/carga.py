@@ -9,6 +9,10 @@ Uso (a senha das contas vem de uma variável de ambiente, para não ficar no his
     set CARGA_SENHA=<senha das contas de demonstração>
     python tests/load/carga.py --base http://localhost:8000 --contas msato,cferraz,lprado
 
+Rajada: um total fixo de requisições, sem pausa, para medir o teto do sistema:
+
+    python tests/load/carga.py --base http://localhost:8000 --rajada 10000 --concorrencia 100
+
 Só com visitantes, nas páginas públicas, não é preciso senha:
 
     python tests/load/carga.py --base https://devstage-umc.up.railway.app --visitantes 1
@@ -168,6 +172,38 @@ def rodar_etapa(bases, contas, senha, usuarios, duracao, visitantes, rampa=0):
     return etapa
 
 
+def rodar_rajada(bases, total, concorrencia):
+    """Dispara `total` requisições nas páginas públicas, o mais rápido possível, com `concorrencia`
+    conexões ao mesmo tempo e sem pausa entre elas. Mede o teto do sistema, não o uso normal."""
+    medidas, parar = [], threading.Event()
+    explorador = UsuarioVirtual(bases[0], "", "", [], parar)
+    explorador.ranking()  # descobre os portfólios públicos da primeira página do ranking
+    caminhos = ["/portfolio/ranking/", "/accounts/login/", "/termos/", "/portfolio/ranking/?pagina=2"]
+    caminhos += [f"/portfolio/{nome}/" for nome in explorador.estudantes[:20]]
+    restantes = iter(range(total))
+    trava = threading.Lock()
+
+    def trabalhar(numero):
+        usuario = UsuarioVirtual(bases[numero % len(bases)], "", "", medidas, parar)
+        while True:
+            with trava:
+                indice = next(restantes, None)
+            if indice is None:
+                return
+            caminho = caminhos[indice % len(caminhos)]
+            pagina = "portfólio" if caminho.count("/") == 3 and "ranking" not in caminho else caminho
+            usuario.pedir(pagina, "GET", caminho)
+
+    threads = [threading.Thread(target=trabalhar, args=[numero], daemon=True) for numero in range(concorrencia)]
+    inicio = time.perf_counter()
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    etapa = Etapa(concorrencia, time.perf_counter() - inicio, medidas)
+    return etapa
+
+
 def percentil(valores, p):
     ordenados = sorted(valores)
     return ordenados[min(len(ordenados) - 1, int(len(ordenados) * p / 100))]
@@ -213,8 +249,22 @@ def main():
     parser.add_argument("--visitantes", type=float, default=0.2, help="fração dos usuários que navega sem conta")
     parser.add_argument("--rampa", type=float, default=20, help="segundos, dentro da etapa, em que os usuários vão entrando")
     parser.add_argument("--aquecimento", type=float, default=10, help="segundos de aquecimento, que não entram no relatório")
+    parser.add_argument("--rajada", type=int, default=0,
+                        help="em vez das etapas, dispara este total de requisições nas páginas públicas, sem pausa")
+    parser.add_argument("--concorrencia", type=int, default=50, help="conexões simultâneas da rajada")
     parser.add_argument("--saida", help="arquivo onde gravar o relatório em Markdown")
     args = parser.parse_args()
+
+    if args.rajada:
+        print(f"Rajada de {args.rajada} requisições com {args.concorrencia} conexões simultâneas...", flush=True)
+        etapa = rodar_rajada(args.base, args.rajada, args.concorrencia)
+        texto = f"Rajada concluída em {etapa.duracao:.1f} s.\n\n" + relatorio([etapa]).replace(
+            "Usuários simultâneos", "Conexões simultâneas")
+        print(texto)
+        if args.saida:
+            with open(args.saida, "w", encoding="utf-8") as arquivo:
+                arquivo.write(texto + "\n")
+        return
 
     senha = os.environ.get("CARGA_SENHA", "")
     if not senha and args.visitantes < 1:
