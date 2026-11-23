@@ -41,7 +41,11 @@ def _avaliada(desafio, aluno, nota, empresa):
 
 @pytest.fixture
 def cenario(empresa):
-    facil, medio, dificil = _desafio(empresa, "Fácil"), _desafio(empresa, "Médio", D.INTERMEDIATE), _desafio(empresa, "Difícil", D.ADVANCED)
+    facil, medio, dificil = (
+        _desafio(empresa, "Fácil"),
+        _desafio(empresa, "Médio", D.INTERMEDIATE),
+        _desafio(empresa, "Difícil", D.ADVANCED),
+    )
     ana, bruno, caio, dani = _aluno("ana"), _aluno("bruno"), _aluno("caio"), _aluno("dani")
     _avaliada(dificil, ana, 100, empresa)   # ana: 300 pontos, média 100
     _avaliada(medio, bruno, 90, empresa)    # bruno: 180 + 60 = 240 pontos, média 75
@@ -112,7 +116,9 @@ def test_paginaRanking_vazio_deveExplicar(client):
 @pytest.mark.django_db
 def test_portfolio_deveTrazerPontosMediaPosicaoESoAsAvaliadas(cenario, empresa):
     caio = cenario["caio"]
-    Submission.objects.create(challenge=_desafio(empresa, "Sem nota"), student=caio, repo_url="https://github.com/a/c", description="x")
+    Submission.objects.create(
+        challenge=_desafio(empresa, "Sem nota"), student=caio, repo_url="https://github.com/a/c", description="x",
+    )
 
     dados = portfolio_do_estudante(caio)
 

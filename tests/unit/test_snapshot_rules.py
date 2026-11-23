@@ -4,7 +4,8 @@ repositórios, a classe RepoSnapshot e o middleware de auditoria.
 
 Nada aqui toca o banco nem a rede: os objetos são montados em memória, sem .save().
 """
-from datetime import datetime, timedelta, timezone as dt_timezone
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
@@ -163,7 +164,8 @@ def test_snapshot_practices_marcaOQueORepositorioTem():
     snapshot = _snapshot({"practices": ["docker", "ci"]})
 
     assert snapshot.practices == [
-        [".gitignore", False], ["Licença", False], ["Docker", True], ["Pipeline de CI", True], [".env de exemplo", False],
+        [".gitignore", False], ["Licença", False], ["Docker", True], ["Pipeline de CI", True],
+        [".env de exemplo", False],
     ]
 
 

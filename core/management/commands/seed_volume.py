@@ -30,29 +30,38 @@ DOMINIO_VOLUME = "volume.devstage.test"
 LOTE = 1000
 
 NOMES = [
-    "Ana", "Bruno", "Carla", "Daniel", "Eduarda", "Fábio", "Gabriela", "Heitor", "Isadora", "João", "Karina", "Leonardo",
-    "Mariana", "Nicolas", "Olívia", "Paulo", "Rafaela", "Samuel", "Tatiane", "Ulisses", "Valentina", "William", "Yasmin",
-    "Arthur", "Beatriz", "Caio", "Débora", "Enzo", "Fernanda", "Guilherme", "Helena", "Igor", "Juliana", "Kevin", "Lívia",
+    "Ana", "Bruno", "Carla", "Daniel", "Eduarda", "Fábio", "Gabriela", "Heitor", "Isadora", "João",
+    "Karina", "Leonardo",
+    "Mariana", "Nicolas", "Olívia", "Paulo", "Rafaela", "Samuel", "Tatiane", "Ulisses",
+    "Valentina", "William", "Yasmin",
+    "Arthur", "Beatriz", "Caio", "Débora", "Enzo", "Fernanda", "Guilherme", "Helena", "Igor",
+    "Juliana", "Kevin", "Lívia",
     "Matheus", "Natália", "Otávio", "Priscila", "Rodrigo",
 ]
 SOBRENOMES = [
-    "Almeida", "Barbosa", "Cardoso", "Dias", "Esteves", "Ferreira", "Gomes", "Henriques", "Ibrahim", "Jesus", "Klein", "Lima",
-    "Machado", "Nascimento", "Oliveira", "Pereira", "Queiroz", "Ribeiro", "Souza", "Teixeira", "Uchoa", "Vieira", "Xavier",
+    "Almeida", "Barbosa", "Cardoso", "Dias", "Esteves", "Ferreira", "Gomes", "Henriques",
+    "Ibrahim", "Jesus", "Klein", "Lima",
+    "Machado", "Nascimento", "Oliveira", "Pereira", "Queiroz", "Ribeiro", "Souza", "Teixeira",
+    "Uchoa", "Vieira", "Xavier",
     "Araújo", "Batista", "Castro", "Domingues", "Farias", "Guimarães", "Lopes", "Martins", "Novaes", "Pinto", "Rezende",
     "Santos", "Tavares", "Vasconcelos", "Zanetti", "Moraes", "Correia",
 ]
 EMPRESAS = [
-    "Aurora Dados", "Bússola Tech", "Cobalto Sistemas", "Delta Logística", "Estuário Labs", "Farol Pagamentos", "Granito Cloud",
+    "Aurora Dados", "Bússola Tech", "Cobalto Sistemas", "Delta Logística", "Estuário Labs",
+    "Farol Pagamentos", "Granito Cloud",
     "Horizonte Saúde", "Ípsilon Educação", "Jangada Software", "Kairós Energia", "Litoral Digital", "Mirante Analytics",
-    "Nascente Agro", "Órbita Seguros", "Planalto Varejo", "Quilha Marítima", "Ribeira Fintech", "Serrano Mobilidade", "Trilho Games",
+    "Nascente Agro", "Órbita Seguros", "Planalto Varejo", "Quilha Marítima", "Ribeira Fintech",
+    "Serrano Mobilidade", "Trilho Games",
 ]
 TEMAS = [
-    "API de agendamento", "Painel de indicadores", "Importador de planilhas", "Encurtador de links", "Catálogo de produtos",
+    "API de agendamento", "Painel de indicadores", "Importador de planilhas",
+    "Encurtador de links", "Catálogo de produtos",
     "Sistema de reservas", "Controle de estoque", "Fila de atendimento", "Conversor de moedas", "Gerador de relatórios",
     "Monitor de sensores", "Aplicativo de tarefas", "Busca de endereços", "Carteira digital", "Portal de vagas",
 ]
 CONTEXTOS = [
-    "para clínicas", "para pequenas lojas", "para transportadoras", "para escolas", "para condomínios", "para restaurantes",
+    "para clínicas", "para pequenas lojas", "para transportadoras", "para escolas",
+    "para condomínios", "para restaurantes",
     "para academias", "para cooperativas",
 ]
 PERFIS_DE_CODIGO = [
@@ -75,7 +84,9 @@ class Command(BaseCommand):
             self.limpar()
             return
         if self.contas().exists():
-            self.stdout.write(self.style.WARNING("A massa de volume já existe. Rode com --limpar antes de criar de novo."))
+            self.stdout.write(
+                self.style.WARNING("A massa de volume já existe. Rode com --limpar antes de criar de novo.")
+            )
             return
 
         estudantes, desafios, submissoes = options["estudantes"], options["desafios"], options["submissoes"]
@@ -110,7 +121,9 @@ class Command(BaseCommand):
         finally:
             for modelo in modelos:
                 post_delete.connect(_log_delete, sender=modelo)
-        self.stdout.write(self.style.SUCCESS(f"{total} contas da massa de volume removidas, com tudo que dependia delas."))
+        self.stdout.write(
+            self.style.SUCCESS(f"{total} contas da massa de volume removidas, com tudo que dependia delas.")
+        )
 
     # ---------- criação ----------
 
@@ -228,7 +241,8 @@ class Command(BaseCommand):
                 submission=submissao, status=RepoSnapshot.Status.READY, main_language=linguagem,
                 commit_sha=hashlib.sha1(submissao.repo_url.encode()).hexdigest(),
                 report={
-                    "main_language": linguagem, "languages": [{"name": linguagem, "percent": 100}], "stack": tecnologias,
+                    "main_language": linguagem, "languages": [{"name": linguagem, "percent": 100}],
+                    "stack": tecnologias,
                     "files": sorteio.randint(8, 60), "lines": sorteio.randint(300, 4000), "readme": "ok",
                     "test_files": sorteio.choice([0, 2, 5, 9]), "practices": ["gitignore"], "issues": [],
                     "history": {"count": sorteio.randint(3, 40), "capped": False, "active_days": 3, "authors": 1},

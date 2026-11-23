@@ -41,7 +41,10 @@ def _big_numbers(user, perfil, desafios, submissoes):
         return [
             {"rotulo": "Desafios abertos", "valor": abertos.count()},
             {"rotulo": "Submissões", "valor": submissoes.count()},
-            {"rotulo": "Estudantes", "valor": User.objects.filter(role=User.Role.STUDENT, is_active=True, is_superuser=False).count()},
+            {
+                "rotulo": "Estudantes",
+                "valor": User.objects.filter(role=User.Role.STUDENT, is_active=True, is_superuser=False).count(),
+            },
             {"rotulo": "Empresas aguardando aprovação", "valor": CompanyProfile.objects.filter(approved=False).count()},
             {"rotulo": "Avaliações feitas", "valor": Evaluation.objects.count()},
         ]

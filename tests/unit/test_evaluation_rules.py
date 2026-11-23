@@ -6,7 +6,8 @@ Nenhum teste aqui toca o banco. Por isso o formulário é testado campo a campo,
 is_valid(): a validação completa de um ModelForm confere as restrições do modelo com uma
 consulta ao banco, e esse caminho inteiro é coberto em tests/integration/test_evaluation.py.
 """
-from datetime import datetime, timedelta, timezone as dt_timezone
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 from unittest.mock import patch
 
 import pytest

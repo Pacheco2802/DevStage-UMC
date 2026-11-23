@@ -2,7 +2,6 @@
 from dataclasses import asdict
 
 from django.utils.dateparse import parse_datetime
-from integrations.repo_analysis import analyze_files
 
 from integrations.github_client import (
     EmptyRepoError,
@@ -11,6 +10,7 @@ from integrations.github_client import (
     list_commits,
     parse_repo_url,
 )
+from integrations.repo_analysis import analyze_files
 
 from .models import RepoSnapshot, Submission
 

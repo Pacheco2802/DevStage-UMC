@@ -58,7 +58,10 @@ def test_deve_salvar_submissao_e_bloquear_duplicata_no_banco(estudante, desafio_
 
 
 @pytest.mark.django_db
-@patch("challenges.forms.repo_exists", return_value=GitHubValidationResult(False, "Repositório não encontrado no GitHub."))
+@patch(
+    "challenges.forms.repo_exists",
+    return_value=GitHubValidationResult(False, "Repositório não encontrado no GitHub."),
+)
 def test_deve_reexibir_formulario_com_erro_e_nao_gravar_quando_repositorio_nao_existe(
     _mock_repo_exists, client, estudante, desafio_aberto
 ):

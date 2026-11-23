@@ -1,11 +1,12 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.conf import settings
 from django.utils import timezone
 
 from integrations.github_client import parse_repo_url
+
 
 # Create your models here.
 class Challenge(models.Model):

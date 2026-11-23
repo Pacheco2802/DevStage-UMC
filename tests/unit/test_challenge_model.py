@@ -2,7 +2,8 @@
 Testes unitários da classe Challenge: peso da dificuldade, prazo, ciclo de vida (RN21)
 e liberação da avaliação (RN41). Objetos criados sem .save(): nada aqui toca o banco.
 """
-from datetime import datetime, timedelta, timezone as dt_timezone
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 from unittest.mock import patch
 
 import pytest

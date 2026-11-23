@@ -1,11 +1,12 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from .models import User, CompanyProfile, StudentProfile
 from django.db import transaction
 
 from core.utils import get_client_ip
 
 from . import throttle
+from .models import CompanyProfile, StudentProfile, User
+
 
 class StudentSignupForm(UserCreationForm):
     # Campo extra
