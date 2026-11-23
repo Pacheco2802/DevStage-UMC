@@ -196,3 +196,22 @@ class TestAccountEndpoints:
         response = Client().post("/accounts/signup/estudante/", dados)
         assert response.status_code == 302
         return User.objects.get(username=dados["username"])
+
+
+# ---------- Rotas de senha: o sistema não envia e-mail, então elas não existem ----------
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("caminho", [
+    "/accounts/password_reset/",
+    "/accounts/password_reset/done/",
+    "/accounts/reset/MQ/abc-123/",
+    "/accounts/reset/done/",
+    "/accounts/password_change/",
+    "/accounts/password_change/done/",
+])
+def test_rotas_de_troca_e_recuperacao_de_senha_nao_estao_expostas(client, caminho):
+    # A tela de recuperação respondia "e-mail enviado" sem enviar nada, porque não há serviço de e-mail
+    usuario = User.objects.create_user(username=_unico("aluno"), password=SENHA, role=User.Role.STUDENT)
+    client.force_login(usuario)
+
+    assert client.get(caminho).status_code == 404
