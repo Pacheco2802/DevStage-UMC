@@ -37,9 +37,10 @@ A página **Ajuda** (`/ajuda/`), pública e com link no menu e no rodapé de tod
 - Depois da **primeira submissão**, o desafio não pode mais ser editado: as condições ficam iguais para todos os participantes.
 - Estudante só submete em desafio **aberto** e **dentro do prazo**, e **uma única vez** por desafio (regra conferida na aplicação e garantida por restrição no banco).
 - Apenas o perfil **estudante** submete; apenas a **empresa dona** do desafio avalia as submissões dele.
-- A URL do repositório é **validada na API do GitHub** (formato `https://github.com/usuario/repositorio` e existência do repositório).
+- A URL do repositório é **validada na API do GitHub** (formato `https://github.com/usuario/repositorio` e existência do repositório). Repositório **vazio, sem nenhum commit, é recusado**: não haveria o que registrar na entrega.
 - A avaliação só é liberada **depois do prazo ou do encerramento** do desafio, para que todos sejam avaliados nas mesmas condições.
-- A avaliação tem **nota de 0 a 100**, **pontos fortes** e **pontos a melhorar** (mínimo de 20 caracteres cada). Cada submissão recebe **uma única avaliação**, que a empresa **não pode alterar**; correções são feitas pelo administrador e ficam na auditoria.
+- A avaliação tem **nota de 0 a 100**, **pontos fortes** e **pontos a melhorar** (mínimo de 20 caracteres cada). Cada submissão recebe **uma única avaliação**, que a empresa **não pode alterar**; correções são feitas pelo administrador e ficam na auditoria, com a **nota anterior e a nova**.
+- As regras do ciclo de vida **valem também na área administrativa**: o administrador não reabre um desafio encerrado, não altera prazo nem dificuldade depois da primeira entrega e não exclui entregas nem avaliações.
 - **Pontos = nota × peso da dificuldade** (Iniciante ×1, Intermediário ×2, Avançado ×3). O peso é gravado na avaliação, então os pontos não mudam se o desafio for alterado depois.
 - O **ranking** é ordenado pelo total de pontos; o desempate é pela maior média de notas e, depois, pela ordem alfabética. É calculado por agregação no banco, sem tabela própria.
 - As **listagens são paginadas**: ranking com 50 estudantes por página (a busca filtra sem alterar a posição no ranking geral), projetos com 12 e submissões recebidas com 20.
@@ -174,7 +175,7 @@ python -m pytest --cov                                  # com o relatório de co
 | Unitários | `tests/unit/` | Classes e funções de regra de negócio, sem banco e sem rede: `Challenge` (peso, prazo, ciclo de vida, liberação da avaliação), `Evaluation` (cálculo dos pontos), formulários de desafio, de avaliação e de submissão, regras de submissão e de avaliação, decoradores de perfil, middlewares, cliente do GitHub (com a API simulada) e análise dos arquivos do repositório |
 | Integração | `tests/integration/` | Fluxos HTTP completos, com o PostgreSQL de teste: contas, desafios e ciclo de vida, submissão, avaliação e pontuação, painel da empresa, ranking, portfólio e perfil, dashboard, LGPD, versionamento dos termos, auditoria, limite de tentativas de login, raio-X da entrega, migrações de dados, paginação, desempenho com 10.000 submissões e os comandos de dados de demonstração e de volume |
 
-Resultado atual: **462 testes passando** (215 unitários e 247 de integração), com **99% de cobertura** do código da aplicação, medida pelo coverage.py. Só os testes unitários, que rodam sem banco em poucos segundos, cobrem 62%. O teste de desempenho usa uma base de 10.000 submissões. A meta do projeto é de no mínimo 50%; a configuração da medição está em `.coveragerc`.
+Resultado atual: **493 testes passando** (219 unitários e 274 de integração), com **99% de cobertura** do código da aplicação, medida pelo coverage.py. Só os testes unitários, que rodam sem banco em poucos segundos, cobrem 61%. O teste de desempenho usa uma base de 10.000 submissões. A meta do projeto é de no mínimo 50%; a configuração da medição está em `.coveragerc`.
 
 ### Teste de carga
 
