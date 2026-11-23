@@ -123,7 +123,9 @@ def test_bigNumbers_desafioComPrazoVencido_naoContaComoAberto(empresa, estudante
 def test_bigNumbers_estudanteAvaliado_deveMostrarNotaMedia(empresa, estudante, desafio_aberto):
     outro = _criar_desafio(empresa, "Outro")
     for desafio, nota in [(desafio_aberto, 70), (outro, 80)]:
-        Evaluation.objects.create(submission=_submeter(desafio, estudante), evaluated_by=empresa.user, score=nota, strengths="Bom trabalho.")
+        Evaluation.objects.create(
+            submission=_submeter(desafio, estudante), evaluated_by=empresa.user, score=nota, strengths="Bom trabalho.",
+        )
 
     numeros = _numeros(dashboard_data(estudante))
     assert numeros["Nota média"] == 75

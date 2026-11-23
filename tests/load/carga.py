@@ -27,12 +27,12 @@ sem sujar a base. Depende apenas da biblioteca requests, que o projeto já usa.
 """
 import argparse
 import os
-from concurrent.futures import ProcessPoolExecutor
 import random
 import re
 import statistics
 import threading
 import time
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
 
 import requests
@@ -245,7 +245,8 @@ def resumo(medidas, duracao):
     erros = sum(1 for medida in medidas if not medida.ok)
     return {
         "requisicoes": len(medidas), "erros": erros, "por_segundo": len(medidas) / duracao,
-        "mediana": statistics.median(tempos), "p95": percentil(tempos, 95), "p99": percentil(tempos, 99), "maximo": max(tempos),
+        "mediana": statistics.median(tempos), "p95": percentil(tempos, 95),
+        "p99": percentil(tempos, 99), "maximo": max(tempos),
     }
 
 
@@ -261,11 +262,15 @@ def relatorio(etapas):
             f"{r['p95']:.0f} | {r['p99']:.0f} | {r['maximo']:.0f} |"
         )
     linhas += ["", "Por página, na etapa com mais usuários:", "",
-               "| Página | Requisições | Erros | Mediana (ms) | p95 (ms) | Máximo (ms) |", "|---|---:|---:|---:|---:|---:|"]
+               "| Página | Requisições | Erros | Mediana (ms) | p95 (ms) | Máximo (ms) |",
+               "|---|---:|---:|---:|---:|---:|"]
     ultima = etapas[-1]
     for pagina in sorted({medida.pagina for medida in ultima.medidas}):
         r = resumo([medida for medida in ultima.medidas if medida.pagina == pagina], ultima.duracao)
-        linhas.append(f"| {pagina} | {r['requisicoes']} | {r['erros']} | {r['mediana']:.0f} | {r['p95']:.0f} | {r['maximo']:.0f} |")
+        linhas.append(
+            f"| {pagina} | {r['requisicoes']} | {r['erros']} "
+            f"| {r['mediana']:.0f} | {r['p95']:.0f} | {r['maximo']:.0f} |"
+        )
     return "\n".join(linhas)
 
 
@@ -278,8 +283,12 @@ def main():
     parser.add_argument("--usuarios", default="10,25,50", help="usuários simultâneos de cada etapa")
     parser.add_argument("--duracao", type=float, default=60, help="segundos de cada etapa")
     parser.add_argument("--visitantes", type=float, default=0.2, help="fração dos usuários que navega sem conta")
-    parser.add_argument("--rampa", type=float, default=20, help="segundos, dentro da etapa, em que os usuários vão entrando")
-    parser.add_argument("--aquecimento", type=float, default=10, help="segundos de aquecimento, que não entram no relatório")
+    parser.add_argument(
+        "--rampa", type=float, default=20, help="segundos, dentro da etapa, em que os usuários vão entrando",
+    )
+    parser.add_argument(
+        "--aquecimento", type=float, default=10, help="segundos de aquecimento, que não entram no relatório",
+    )
     parser.add_argument("--rajada", type=int, default=0,
                         help="em vez das etapas, dispara este total de requisições nas páginas públicas, sem pausa")
     parser.add_argument("--concorrencia", type=int, default=50, help="conexões simultâneas da rajada")
@@ -312,7 +321,9 @@ def main():
     etapas = []
     for usuarios in [int(valor) for valor in args.usuarios.split(",")]:
         print(f"Etapa com {usuarios} usuários simultâneos por {args.duracao:.0f} s...", flush=True)
-        etapas.append(rodar_etapa(args.base, contas, senha, usuarios, args.duracao, args.visitantes, args.rampa, args.processos))
+        etapas.append(
+            rodar_etapa(args.base, contas, senha, usuarios, args.duracao, args.visitantes, args.rampa, args.processos)
+        )
         medidas = etapas[-1].medidas
         erros = sum(1 for medida in medidas if not medida.ok) / max(1, len(medidas))
         if erros > args.limite_de_erros:

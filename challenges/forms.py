@@ -1,8 +1,11 @@
 from django import forms
-from .models import Submission, Challenge, Evaluation
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+
 from integrations.github_client import repo_exists
+
+from .models import Challenge, Evaluation, Submission
+
 
 class SubmissionForm(forms.ModelForm):
     class Meta:

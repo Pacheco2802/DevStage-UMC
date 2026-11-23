@@ -1,16 +1,18 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q
 from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-from .forms import SubmissionForm, ChallengeForm, EvaluationForm
-from .models import Challenge, Submission, Evaluation
-from .services import analyze_snapshot, duplicates_of, freeze_submission
+
 from core.decorators import approved_company_required, company_required, student_required
 from core.pagination import filtros_da_url, paginar
 from integrations.github_client import EmptyRepoError
+
+from .forms import ChallengeForm, EvaluationForm, SubmissionForm
+from .models import Challenge, Evaluation, Submission
+from .services import analyze_snapshot, duplicates_of, freeze_submission
 
 DESAFIOS_POR_PAGINA = 12
 SUBMISSOES_POR_PAGINA = 20

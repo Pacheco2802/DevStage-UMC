@@ -7,13 +7,13 @@ O GitHub é o único ponto simulado (histórico de commits e download do código
 from datetime import timedelta
 
 import pytest
-from challenges.services import analyze_snapshot, duplicates_of, freeze_submission
 from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import CompanyProfile, User
 from audit.models import AuditLog
 from challenges.models import Challenge, Evaluation, RepoSnapshot, Submission
+from challenges.services import analyze_snapshot, duplicates_of, freeze_submission
 from integrations.github_client import (
     CommitHistory,
     EmptyRepoError,
@@ -405,7 +405,9 @@ def test_estudante_ve_o_resumo_da_propria_entrega_mas_nao_os_alertas(client, est
 @pytest.mark.django_db
 def test_portfolio_mostra_linguagem_e_tecnologias_do_projeto_avaliado(client, estudante, empresa, submissao, github):
     analyze_snapshot(freeze_submission(submissao))
-    Evaluation.objects.create(submission=submissao, evaluated_by=empresa.user, score=90, strengths="Muito bom trabalho.")
+    Evaluation.objects.create(
+        submission=submissao, evaluated_by=empresa.user, score=90, strengths="Muito bom trabalho.",
+    )
     client.force_login(empresa.user)
 
     conteudo = client.get(reverse("portfolio:detail", args=[estudante.username])).content.decode()

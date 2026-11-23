@@ -288,7 +288,9 @@ def test_cadastro_estudante_cria_perfil_com_portfolio_publico(client):
 
 
 @pytest.mark.django_db
-def test_exportar_dados_do_estudante_inclui_avaliacao_recebida_e_perfil(client, estudante, empresa, consentimento, desafio_aberto):
+def test_exportar_dados_do_estudante_inclui_avaliacao_recebida_e_perfil(
+    client, estudante, empresa, consentimento, desafio_aberto,
+):
     StudentProfile.objects.create(user=estudante, bio="Sou o Fulano.", github_username="fulano")
     submissao = Submission.objects.create(
         challenge=desafio_aberto, student=estudante,
@@ -311,12 +313,16 @@ def test_exportar_dados_do_estudante_inclui_avaliacao_recebida_e_perfil(client, 
 
 
 @pytest.mark.django_db
-def test_exportar_dados_da_empresa_inclui_avaliacoes_feitas_sem_identificar_o_estudante(client, estudante, empresa, desafio_aberto):
+def test_exportar_dados_da_empresa_inclui_avaliacoes_feitas_sem_identificar_o_estudante(
+    client, estudante, empresa, desafio_aberto,
+):
     submissao = Submission.objects.create(
         challenge=desafio_aberto, student=estudante,
         repo_url="https://github.com/aluno/api", description="Minha solução",
     )
-    Evaluation.objects.create(submission=submissao, evaluated_by=empresa.user, score=80, strengths="Boa organização do código.")
+    Evaluation.objects.create(
+        submission=submissao, evaluated_by=empresa.user, score=80, strengths="Boa organização do código.",
+    )
     client.force_login(empresa.user)
 
     response = client.get(reverse("my_data_export"))

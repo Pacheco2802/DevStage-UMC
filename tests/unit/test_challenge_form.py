@@ -2,7 +2,8 @@
 Testes unitários do ChallengeForm (RN19 e RN20) e do validador do usuário do GitHub do
 StudentProfile. Nenhum teste aqui toca o banco.
 """
-from datetime import datetime, timedelta, timezone as dt_timezone
+from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 from unittest.mock import patch
 
 import pytest
@@ -90,7 +91,9 @@ def test_githubUsername_valido_devePassar(valor):
     _validar_github(valor)
 
 
-@pytest.mark.parametrize("valor", ["@pedro", "https://github.com/pedro", "pedro pacheco", "-pedro", "pedro-", "pedro/repo"])
+@pytest.mark.parametrize("valor", [
+    "@pedro", "https://github.com/pedro", "pedro pacheco", "-pedro", "pedro-", "pedro/repo",
+])
 def test_githubUsername_invalido_deveSerRecusado(valor):
     with pytest.raises(ValidationError):
         _validar_github(valor)
