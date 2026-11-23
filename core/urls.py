@@ -6,6 +6,7 @@ app_name = "core"
 
 # Sem versão na URL, mostra a vigente; com versão, mostra a publicada naquele número
 urlpatterns = [
+    path("ajuda/", views.help_page, name="help"),
     path("termos/", views.legal_document, {"document": "terms"}, name="terms"),
     path("termos/<str:version>/", views.legal_document, {"document": "terms"}, name="terms_version"),
     path("privacidade/", views.legal_document, {"document": "privacy"}, name="privacy"),

@@ -26,6 +26,8 @@ Empresa publica desafio → Estudante submete solução → Empresa avalia → P
 | **Administrador** | Aprovar empresas (Django Admin) — empresa só publica desafios após aprovação · Consultar a trilha de auditoria · Corrigir avaliações · Gestão geral dos cadastros |
 | **Todos (logados)** | Dashboard com indicadores e gráficos por perfil · Página **Meus Dados** (LGPD) |
 
+A página **Ajuda** (`/ajuda/`), pública e com link no menu e no rodapé de todas as telas, resume o passo a passo de cada perfil e traz o manual do sistema completo, em PDF. Para quem está autenticado, o link abre a ajuda já na parte do seu perfil.
+
 ### Regras de negócio implementadas (principais)
 
 - Empresa só cria desafios depois de **aprovada** por um administrador.
@@ -79,7 +81,7 @@ Empresa publica desafio → Estudante submete solução → Empresa avalia → P
 | `dashboard` | Indicadores, gráficos e endpoint JSON |
 | `integrations` | Cliente da API do GitHub |
 | `audit` | Trilha de auditoria (sinais e middleware que identifica o autor de cada alteração) |
-| `core` | Termos, privacidade, decorators de permissão e utilitários |
+| `core` | Termos, privacidade, página de ajuda, decorators de permissão e utilitários |
 
 ---
 
@@ -172,7 +174,7 @@ python -m pytest --cov                                  # com o relatório de co
 | Unitários | `tests/unit/` | Classes e funções de regra de negócio, sem banco e sem rede: `Challenge` (peso, prazo, ciclo de vida, liberação da avaliação), `Evaluation` (cálculo dos pontos), formulários de desafio, de avaliação e de submissão, regras de submissão e de avaliação, decoradores de perfil, middlewares, cliente do GitHub (com a API simulada) e análise dos arquivos do repositório |
 | Integração | `tests/integration/` | Fluxos HTTP completos, com o PostgreSQL de teste: contas, desafios e ciclo de vida, submissão, avaliação e pontuação, painel da empresa, ranking, portfólio e perfil, dashboard, LGPD, versionamento dos termos, auditoria, limite de tentativas de login, raio-X da entrega, migrações de dados, paginação, desempenho com 10.000 submissões e os comandos de dados de demonstração e de volume |
 
-Resultado atual: **457 testes passando** (215 unitários e 242 de integração), com **99% de cobertura** do código da aplicação, medida pelo coverage.py. Só os testes unitários, que rodam sem banco em poucos segundos, cobrem 62%. O teste de desempenho usa uma base de 10.000 submissões. A meta do projeto é de no mínimo 50%; a configuração da medição está em `.coveragerc`.
+Resultado atual: **462 testes passando** (215 unitários e 247 de integração), com **99% de cobertura** do código da aplicação, medida pelo coverage.py. Só os testes unitários, que rodam sem banco em poucos segundos, cobrem 62%. O teste de desempenho usa uma base de 10.000 submissões. A meta do projeto é de no mínimo 50%; a configuração da medição está em `.coveragerc`.
 
 ### Teste de carga
 

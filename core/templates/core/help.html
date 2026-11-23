@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% load static %}
+{% comment %}
+Ajuda do sistema. Resume, por perfil, os mesmos passos do Manual do Sistema, que fica disponível
+em PDF no fim da página. Cada seção tem uma âncora (#estudante, #empresa...), usada pelo link
+"Ajuda" do menu para abrir a página já na parte de quem está autenticado.
+{% endcomment %}
+{% block title %}Ajuda · DevStage{% endblock %}
+
+{% block content %}
+{% include "components/public_bar.html" %}
+<div class="max-w-3xl mx-auto px-6 py-16">
+    <p class="eyebrow mb-3">Ajuda</p>
+    <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight leading-[1.1] mb-3">Como usar o DevStage</h1>
+    <p class="text-sm text-muted mb-8">
+        O passo a passo de cada perfil, na mesma ordem do manual do sistema. Escolha um assunto ou
+        baixe o manual completo, com as telas.
+    </p>
+
+    <nav class="flex flex-wrap gap-2 mb-6" aria-label="Assuntos da ajuda">
+        <a href="#primeiros-passos" class="btn-ghost">Primeiros passos</a>
+        <a href="#estudante" class="btn-ghost">Estudante</a>
+        <a href="#empresa" class="btn-ghost">Empresa</a>
+        <a href="#administrador" class="btn-ghost">Administrador</a>
+        <a href="#ranking" class="btn-ghost">Ranking e portfólio</a>
+        <a href="#meus-dados" class="btn-ghost">Meus dados</a>
+        <a href="#mensagens" class="btn-ghost">Mensagens do sistema</a>
+    </nav>
+
+    <div class="card p-5 mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="font-display font-bold text-base">Manual do sistema</h2>
+            <p class="text-sm text-muted">Documento completo em PDF, com as telas de cada passo e a parte de instalação.</p>
+        </div>
+        <a href="{% static 'core/manual-do-sistema-devstage.pdf' %}" class="btn shrink-0" target="_blank" rel="noopener">Abrir o manual (PDF)</a>
+    </div>
+
+    <article class="space-y-12 text-sm leading-relaxed">
+
+        <section id="primeiros-passos" class="scroll-mt-24 space-y-4">
+            <h2 class="font-display font-bold text-xl">Primeiros passos</h2>
+
+            <div>
+                <h3 class="font-semibold mb-1">Criar uma conta</h3>
+                <ol class="list-decimal list-inside space-y-1 text-muted">
+                    <li>Na tela de entrada, escolha o cadastro de estudante ou o de empresa.</li>
+                    <li>Preencha usuário, e-mail, nome e a senha duas vezes. A senha precisa ter pelo menos 8 caracteres e não pode ser só de números.</li>
+                    <li>Leia os Termos de Uso e a Política de Privacidade e marque a caixa de aceite. Sem o aceite, a conta não é criada.</li>
+                    <li>Ao confirmar, você já entra no sistema.</li>
+                </ol>
+                <p class="text-muted mt-2">
+                    A conta de empresa começa pendente: você entra e vê os desafios, mas só publica depois que
+                    o administrador aprovar o cadastro.
+                </p>
+            </div>
+
+            <div>
+                <h3 class="font-semibold mb-1">Entrar e sair</h3>
+                <p class="text-muted">
+                    Informe usuário e senha na tela de entrada. Para sair, use <strong>Sair</strong>, no canto superior
+                    direito (no celular, dentro do Menu). Depois de 5 senhas erradas para o mesmo usuário em 15 minutos,
+                    o acesso fica bloqueado por alguns minutos, mesmo com a senha certa. A tela informa quanto tempo falta.
+                </p>
+            </div>
+
+            <div>
+                <h3 class="font-semibold mb-1">Novo aceite dos termos</h3>
+                <p class="text-muted">
+                    Quando uma versão nova dos termos é publicada, o sistema pede um novo aceite no seu próximo acesso e
+                    mostra o que mudou. Enquanto você não aceita, continua podendo ler os documentos e esta ajuda, baixar
+                    seus dados, revogar o consentimento e excluir a conta.
+                </p>
+            </div>
+        </section>
+
+        <section id="estudante" class="scroll-mt-24 space-y-4">
+            <h2 class="font-display font-bold text-xl">Para o estudante</h2>
+
+            <div>
+                <h3 class="font-semibold mb-1">Encontrar um projeto</h3>
+                <p class="text-muted">
+                    A página <strong>Projetos</strong> lista os desafios abertos, 12 por página. Cada cartão mostra a empresa,
+                    a dificuldade com o peso da nota (×1, ×2 ou ×3) e o prazo. Use a busca por título ou empresa e o filtro
+                    de dificuldade.
+                </p>
+            </div>
+
+            <div>
+                <h3 class="font-semibold mb-1">Entregar uma solução</h3>
+                <ol class="list-decimal list-inside space-y-1 text-muted">
+                    <li>Abra o desafio e leia a aba Brief do Projeto.</li>
+                    <li>Vá para a aba Fazer Entrega.</li>
+                    <li>Informe a URL do repositório no GitHub, no formato <span class="font-mono">https://github.com/usuario/repositorio</span>. A URL de deploy e as notas para o avaliador são opcionais.</li>
+                    <li>Clique em Enviar Entrega. O sistema confere o repositório e registra o commit daquele instante.</li>
+                </ol>
+                <p class="text-muted mt-2">
+                    Cada estudante envia uma única solução por desafio, dentro do prazo. A avaliação considera o commit
+                    registrado na entrega; o que for enviado ao repositório depois não entra. O repositório precisa estar público.
+                </p>
+            </div>
+
+            <div>
+                <h3 class="font-semibold mb-1">Acompanhar o resultado</h3>
+                <p class="text-muted">
+                    Em <strong>Minhas submissões</strong> ficam todas as suas entregas. Enquanto a empresa não avalia,
+                    aparece Aguardando avaliação. Depois, abra o feedback para ver a nota, os pontos, os pontos fortes e
+                    os pontos a melhorar.
+                </p>
+            </div>
+
+            <div>
+                <h3 class="font-semibold mb-1">Perfil e portfólio</h3>
+                <p class="text-muted">
+                    Em <strong>Meu perfil</strong> você escreve uma apresentação, informa seu usuário do GitHub e escolhe se
+                    o portfólio é público. Público: qualquer pessoa com o endereço vê a página, e você aparece no ranking.
+                    Privado: só você vê, e você sai do ranking. O e-mail nunca aparece, e o texto do feedback só é mostrado a você.
+                </p>
+            </div>
+        </section>
+
+        <section id="empresa" class="scroll-mt-24 space-y-4">
+            <h2 class="font-display font-bold text-xl">Para a empresa</h2>
+
+            <div>
+                <h3 class="font-semibold mb-1">Criar um desafio</h3>
+                <ol class="list-decimal list-inside space-y-1 text-muted">
+                    <li>Com a empresa aprovada, clique em Novo desafio.</li>
+                    <li>Informe título, descrição, nível de dificuldade e prazo de entrega. O prazo precisa ser uma data futura.</li>
+                    <li>Escolha a situação inicial: Rascunho (só a sua empresa vê) ou Aberto (já aparece para os estudantes).</li>
+                </ol>
+                <p class="text-muted mt-2">
+                    A dificuldade define o peso da nota: Iniciante ×1, Intermediário ×2 e Avançado ×3. Uma nota 80 vale
+                    80, 160 ou 240 pontos.
+                </p>
+            </div>
+
+            <div>
+                <h3 class="font-semibold mb-1">Publicar, encerrar e editar</h3>
+                <ul class="list-disc list-inside space-y-1 text-muted">
+                    <li><strong>Publicar</strong> leva um Rascunho para Aberto. Um rascunho com o prazo vencido não pode ser publicado.</li>
+                    <li><strong>Encerrar</strong> leva um desafio Aberto para Encerrado. Ele deixa de receber entregas e não pode ser reaberto.</li>
+                    <li><strong>Editar</strong> fica disponível até a primeira entrega. Depois dela, as condições ficam iguais para todos.</li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="font-semibold mb-1">Avaliar uma entrega</h3>
+                <ol class="list-decimal list-inside space-y-1 text-muted">
+                    <li>Em Meus desafios, abra Ver submissões e clique em Avaliar na entrega desejada.</li>
+                    <li>Analise o repositório, o deploy, as notas do estudante e o raio-X da entrega.</li>
+                    <li>Informe a nota, de 0 a 100, e escreva os pontos fortes e os pontos a melhorar, com pelo menos 20 caracteres cada.</li>
+                    <li>Confira e salve. O estudante já passa a ver a nota, os pontos e o feedback.</li>
+                </ol>
+                <p class="text-muted mt-2">
+                    A avaliação só é liberada depois do prazo ou do encerramento do desafio. Cada entrega recebe uma única
+                    avaliação, que não pode ser alterada pela empresa; se houver um erro, peça a correção ao administrador.
+                </p>
+            </div>
+
+            <div>
+                <h3 class="font-semibold mb-1">Raio-X da entrega</h3>
+                <p class="text-muted">
+                    Mostra o repositório no commit registrado na entrega: linguagens, tecnologias, tamanho, histórico de
+                    commits e uma lista de boas práticas. Os pontos de atenção, como um arquivo .env versionado, são indícios
+                    para conferência, não conclusões. A decisão é sempre da empresa.
+                </p>
+            </div>
+        </section>
+
+        <section id="administrador" class="scroll-mt-24 space-y-4">
+            <h2 class="font-display font-bold text-xl">Para o administrador</h2>
+            <p class="text-muted">O administrador trabalha na área administrativa, em <span class="font-mono">/admin/</span>.</p>
+            <ul class="list-disc list-inside space-y-1 text-muted">
+                <li><strong>Aprovar uma empresa:</strong> em Company profiles, abra a empresa, marque Approved e salve.</li>
+                <li><strong>Consultar a auditoria:</strong> em Audit logs, filtre por ação, entidade e data. Os registros são somente leitura.</li>
+                <li><strong>Corrigir uma avaliação:</strong> em Evaluations, corrija a nota ou o feedback e salve. Os pontos são recalculados com o peso original, e a alteração fica na auditoria.</li>
+            </ul>
+        </section>
+
+        <section id="ranking" class="scroll-mt-24 space-y-4">
+            <h2 class="font-display font-bold text-xl">Ranking e portfólio</h2>
+            <p class="text-muted">
+                O <a href="{% url 'portfolio:ranking' %}" class="link">ranking</a> e os portfólios podem ser vistos por qualquer
+                pessoa, sem conta. O ranking soma os pontos das submissões avaliadas; em caso de empate, fica na frente quem
+                tem a maior média. São 50 estudantes por página, em três visualizações (Pódio, Lista e Cartões), com busca por
+                nome ou usuário. Só aparecem estudantes com portfólio público.
+            </p>
+        </section>
+
+        <section id="meus-dados" class="scroll-mt-24 space-y-4">
+            <h2 class="font-display font-bold text-xl">Privacidade e meus dados</h2>
+            <p class="text-muted">A página <strong>Meus dados</strong> reúne os direitos garantidos pela LGPD.</p>
+            <ul class="list-disc list-inside space-y-1 text-muted">
+                <li><strong>Corrigir e consultar:</strong> nome e e-mail, o histórico dos seus aceites e as últimas ações registradas em seu nome.</li>
+                <li><strong>Baixar meus dados:</strong> um arquivo JSON com cadastro, perfil, consentimentos, submissões e avaliações.</li>
+                <li><strong>Revogar o consentimento:</strong> a conta é desativada e a sessão é encerrada.</li>
+                <li><strong>Excluir minha conta:</strong> exige a sua senha. A conta é anonimizada e a exclusão não pode ser desfeita.</li>
+            </ul>
+            <p class="text-muted">
+                Dúvidas sobre o tratamento de dados podem ser enviadas ao encarregado (DPO), em
+                <a href="mailto:{{ DPO_EMAIL }}" class="link">{{ DPO_EMAIL }}</a>.
+            </p>
+        </section>
+
+        <section id="mensagens" class="scroll-mt-24 space-y-4">
+            <h2 class="font-display font-bold text-xl">Mensagens do sistema</h2>
+            <p class="text-muted">O que cada aviso significa e o que fazer.</p>
+            <dl class="card divide-y divide-line">
+                <div class="p-4">
+                    <dt class="font-semibold">Sua empresa ainda não foi aprovada por um administrador.</dt>
+                    <dd class="text-muted">O cadastro da empresa está pendente. Aguarde a aprovação.</dd>
+                </div>
+                <div class="p-4">
+                    <dt class="font-semibold">Apenas usuários com perfil de estudante podem submeter.</dt>
+                    <dd class="text-muted">Você está em uma conta de empresa ou de administrador.</dd>
+                </div>
+                <div class="p-4">
+                    <dt class="font-semibold">Este desafio não está aberto para submissões.</dt>
+                    <dd class="text-muted">O desafio é um rascunho ou já foi encerrado.</dd>
+                </div>
+                <div class="p-4">
+                    <dt class="font-semibold">O prazo deste desafio já venceu.</dt>
+                    <dd class="text-muted">A data limite passou; não é mais possível entregar.</dd>
+                </div>
+                <div class="p-4">
+                    <dt class="font-semibold">Você já enviou uma submissão para este desafio.</dt>
+                    <dd class="text-muted">Só é aceita uma entrega por desafio.</dd>
+                </div>
+                <div class="p-4">
+                    <dt class="font-semibold">Repositório não encontrado no GitHub.</dt>
+                    <dd class="text-muted">A URL está errada ou o repositório é privado. Deixe-o público.</dd>
+                </div>
+                <div class="p-4">
+                    <dt class="font-semibold">O prazo precisa ser uma data futura.</dt>
+                    <dd class="text-muted">Ao criar ou alterar um desafio, escolha um prazo que ainda não passou.</dd>
+                </div>
+                <div class="p-4">
+                    <dt class="font-semibold">A avaliação só é liberada depois do prazo ou do encerramento do desafio.</dt>
+                    <dd class="text-muted">Aguarde o prazo ou encerre o desafio em Meus desafios.</dd>
+                </div>
+                <div class="p-4">
+                    <dt class="font-semibold">Esta submissão já foi avaliada.</dt>
+                    <dd class="text-muted">A avaliação não pode ser alterada; peça a correção ao administrador.</dd>
+                </div>
+                <div class="p-4">
+                    <dt class="font-semibold">Muitas tentativas de login. Por segurança, o acesso está bloqueado.</dt>
+                    <dd class="text-muted">Houve 5 senhas erradas seguidas para esse usuário. Aguarde os minutos indicados e tente de novo.</dd>
+                </div>
+            </dl>
+            <p class="text-muted">A lista completa está no manual do sistema.</p>
+        </section>
+    </article>
+
+    <div class="mt-12 pt-6 border-t border-line flex items-center justify-between text-xs text-muted">
+        <a href="{% static 'core/manual-do-sistema-devstage.pdf' %}" class="hover:text-light transition-colors" target="_blank" rel="noopener">Manual do sistema (PDF)</a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'challenges:list' %}" class="hover:text-light transition-colors">Voltar aos desafios</a>
+        {% else %}
+        <a href="{% url 'login' %}" class="hover:text-light transition-colors">Ir para a tela de entrada</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

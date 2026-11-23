@@ -283,6 +283,7 @@
                     </div>
                 </div>
                 <a href="{% url 'my_data' %}" class="nav-link {% if request.resolver_match.url_name == 'my_data' %}is-on{% endif %}">Meus dados</a>
+                {% include "components/help_link.html" %}
                 <form method="post" action="{% url 'logout' %}" class="inline">
                     {% csrf_token %}
                     <button type="submit" class="text-sm font-medium text-muted hover:text-danger transition-colors">Sair</button>
@@ -296,6 +297,7 @@
             <nav class="flex flex-col items-start gap-2" aria-label="Principal">
                 {% include "components/nav_links.html" %}
                 <a href="{% url 'my_data' %}" class="nav-link {% if request.resolver_match.url_name == 'my_data' %}is-on{% endif %}">Meus dados</a>
+                {% include "components/help_link.html" %}
             </nav>
             <div class="mt-4 pt-4 border-t border-line flex items-center justify-between text-sm">
                 <span><span class="font-semibold">{{ user.username }}</span> <span class="text-muted">· {% if user.is_superuser %}Administrador{% else %}{{ user.get_role_display }}{% endif %}</span></span>
@@ -329,6 +331,7 @@
         <div class="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted">
             <span>© 2026 DevStage · Projeto acadêmico UMC</span>
             <nav class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1" aria-label="Rodapé">
+                <a href="{% url 'core:help' %}" class="hover:text-light transition-colors">Ajuda</a>
                 <a href="{% url 'core:terms' %}" class="hover:text-light transition-colors">Termos de Uso</a>
                 <a href="{% url 'core:privacy' %}" class="hover:text-light transition-colors">Política de Privacidade</a>
                 <a href="mailto:{{ DPO_EMAIL }}" class="hover:text-light transition-colors">Encarregado (DPO): {{ DPO_EMAIL }}</a>

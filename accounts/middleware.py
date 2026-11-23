@@ -6,11 +6,12 @@ from .services import has_current_consent
 class TermsConsentMiddleware:
     """Usuário logado só navega depois de aceitar a versão vigente dos termos (LGPD art. 8º, § 6º)."""
 
-    # Continuam abertas sem o aceite: ler os documentos, aceitar, sair e exercer os direitos
-    # do titular (art. 18), que não podem depender de concordar com a versão nova.
+    # Continuam abertas sem o aceite: ler os documentos e a ajuda, aceitar, sair e exercer os
+    # direitos do titular (art. 18), que não podem depender de concordar com a versão nova.
     FREE_ROUTES = [
         "terms_accept",
         "logout",
+        "core:help",
         "core:terms",
         "core:terms_version",
         "core:privacy",
