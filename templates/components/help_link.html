@@ -1,0 +1,2 @@
+{# Link da ajuda: abre a página já na parte do perfil de quem está autenticado #}
+<a href="{% url 'core:help' %}{% if user.is_superuser %}#administrador{% elif user.role == 'COMPANY' %}#empresa{% elif user.role == 'STUDENT' %}#estudante{% endif %}" class="nav-link {% if request.resolver_match.url_name == 'help' %}is-on{% endif %}">Ajuda</a>

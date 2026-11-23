@@ -7,6 +7,7 @@ Barra das páginas públicas (ranking e portfólio) para o visitante, que não v
         <a href="{% url 'login' %}" class="font-display font-extrabold text-lg shrink-0">Dev<span class="text-light">Stage</span></a>
         <nav class="flex items-center gap-5 text-sm" aria-label="Visitante">
             <a href="{% url 'portfolio:ranking' %}" class="nav-link">Ranking</a>
+            <a href="{% url 'core:help' %}" class="nav-link">Ajuda</a>
             <a href="{% url 'login' %}" class="nav-link">Entrar</a>
             <a href="{% url 'signup_student' %}" class="btn-ghost hidden sm:inline-flex">Criar conta</a>
         </nav>
