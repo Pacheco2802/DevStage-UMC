@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 import pytest
 import requests
 
-from integrations.github_client import RepoDownloadError, download_repo, list_commits
+from integrations.github_client import EmptyRepoError, RepoDownloadError, download_repo, list_commits
 
 URL = "https://github.com/pedro/devstage"
 SHA = "a" * 40
@@ -89,6 +89,24 @@ def test_deve_avisar_quando_ha_mais_commits_do_que_os_consultados(mock_get):
 @patch("integrations.github_client.requests.get")
 def test_historico_deve_falhar_quando_o_github_nao_responde_200(mock_get, status):
     mock_get.return_value = Mock(status_code=status)
+
+    with pytest.raises(RepoDownloadError):
+        list_commits(URL)
+
+
+@patch("integrations.github_client.requests.get")
+def test_repositorio_vazio_deve_ter_um_erro_proprio(mock_get):
+    # O GitHub responde 409 quando o repositório existe mas ainda não tem nenhum commit
+    mock_get.return_value = Mock(status_code=409)
+
+    with pytest.raises(EmptyRepoError):
+        list_commits(URL)
+
+
+@pytest.mark.parametrize("corpo", [[], {"message": "inesperado"}, [{"sha": "abc"}]])
+@patch("integrations.github_client.requests.get")
+def test_historico_deve_falhar_quando_a_resposta_nao_tem_o_formato_esperado(mock_get, corpo):
+    mock_get.return_value = Mock(status_code=200, json=lambda: corpo)
 
     with pytest.raises(RepoDownloadError):
         list_commits(URL)

@@ -10,10 +10,12 @@ from .models import Challenge, Submission, Evaluation
 from .services import analyze_snapshot, duplicates_of, freeze_submission
 from core.decorators import approved_company_required, company_required, student_required
 from core.pagination import filtros_da_url, paginar
+from integrations.github_client import EmptyRepoError
 
 DESAFIOS_POR_PAGINA = 12
 SUBMISSOES_POR_PAGINA = 20
 ALREADY_SUBMITTED = "Você já enviou uma submissão para este desafio."
+EMPTY_REPO = "O repositório está vazio. Envie o código para o GitHub antes de registrar a entrega."
 ALREADY_EVALUATED = (
     "Esta submissão já foi avaliada. A avaliação não pode ser alterada; "
     "se houver um erro, peça a correção ao administrador da plataforma."
@@ -68,18 +70,23 @@ def challenge_detail(request, pk):
             submission.challenge = challenge
             submission.student = request.user
             try:
-                # atomic: se o banco recusar a linha, a transação da requisição continua utilizável
+                # atomic: se o banco recusar a linha, a transação da requisição continua utilizável.
+                # A entrega e o registro do commit são gravados juntos ou não são gravados.
                 with transaction.atomic():
                     submission.save()
+                    # Registra o commit entregue: o que subir para o repositório depois não entra na avaliação
+                    freeze_submission(submission, form.repo_info, reject_empty=True)
             except IntegrityError:
                 # Duas requisições quase simultâneas (clique duplo, duas abas): a restrição de
                 # unicidade do banco barrou a segunda, e o estudante vê a mesma mensagem da RN31
                 messages.error(request, ALREADY_SUBMITTED)
                 return redirect("challenges:detail", pk=pk)
-            # Registra o commit entregue: o que subir para o repositório depois não entra na avaliação
-            freeze_submission(submission, form.repo_info)
-            messages.success(request, "Entrega registrada com sucesso!")
-            return redirect("challenges:detail", pk=pk)
+            except EmptyRepoError:
+                # Sem nenhum commit não há o que registrar, e o código chegaria depois do prazo (RN69)
+                form.add_error("repo_url", EMPTY_REPO)
+            else:
+                messages.success(request, "Entrega registrada com sucesso!")
+                return redirect("challenges:detail", pk=pk)
     else:
         form = SubmissionForm()
 

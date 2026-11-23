@@ -7,13 +7,20 @@ O GitHub é o único ponto simulado (histórico de commits e download do código
 from datetime import timedelta
 
 import pytest
+from challenges.services import analyze_snapshot, duplicates_of, freeze_submission
 from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import CompanyProfile, User
+from audit.models import AuditLog
 from challenges.models import Challenge, Evaluation, RepoSnapshot, Submission
-from challenges.services import analyze_snapshot, duplicates_of, freeze_submission
-from integrations.github_client import CommitHistory, GitHubValidationResult, RepoDownloadError, RepoFile
+from integrations.github_client import (
+    CommitHistory,
+    EmptyRepoError,
+    GitHubValidationResult,
+    RepoDownloadError,
+    RepoFile,
+)
 
 SHA = "a" * 40
 DADOS_ENTREGA = {
@@ -101,6 +108,38 @@ def test_falha_do_github_nao_impede_a_entrega(client, estudante, desafio_aberto,
     snapshot = Submission.objects.get(student=estudante).snapshot
     assert snapshot.commit_sha == ""
     assert snapshot.status == RepoSnapshot.Status.PENDING
+
+
+def _repositorio_vazio(url):
+    raise EmptyRepoError("GitHub respondeu 409 ao consultar os commits.")
+
+
+@pytest.mark.django_db
+def test_entrega_de_repositorio_vazio_e_recusada(client, estudante, desafio_aberto, github, monkeypatch):
+    # Sem commit na entrega não haveria o que registrar, e o código poderia chegar depois do prazo
+    monkeypatch.setattr("challenges.services.list_commits", _repositorio_vazio)
+    client.force_login(estudante)
+
+    response = client.post(reverse("challenges:detail", args=[desafio_aberto.pk]), DADOS_ENTREGA)
+
+    assert not Submission.objects.filter(student=estudante).exists()
+    assert not RepoSnapshot.objects.exists()
+    assert not AuditLog.objects.filter(target_model="Submission").exists()
+    assert "O repositório está vazio" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_depois_da_recusa_o_estudante_entrega_com_o_repositorio_preenchido(
+    client, estudante, desafio_aberto, github, monkeypatch,
+):
+    client.force_login(estudante)
+    monkeypatch.setattr("challenges.services.list_commits", _repositorio_vazio)
+    client.post(reverse("challenges:detail", args=[desafio_aberto.pk]), DADOS_ENTREGA)
+
+    monkeypatch.setattr("challenges.services.list_commits", lambda url: _historico())
+    client.post(reverse("challenges:detail", args=[desafio_aberto.pk]), DADOS_ENTREGA)
+
+    assert Submission.objects.get(student=estudante).snapshot.commit_sha == SHA
 
 
 # ---------- Análise ----------
@@ -269,6 +308,24 @@ def test_empresa_dona_gera_o_raio_x_de_entrega_antiga_sem_registro(client, empre
     assert response.status_code == 200
     assert submissao.snapshot.status == RepoSnapshot.Status.READY
     assert "Django" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_raio_x_de_entrega_antiga_com_repositorio_vazio_mostra_o_erro_sem_quebrar(
+    client, empresa, submissao, github, monkeypatch,
+):
+    def nada_para_baixar(url, ref=""):
+        raise RepoDownloadError("GitHub respondeu 404 ao baixar o repositório.")
+
+    monkeypatch.setattr("challenges.services.list_commits", _repositorio_vazio)
+    monkeypatch.setattr("challenges.services.download_repo", nada_para_baixar)
+    client.force_login(empresa.user)
+
+    response = client.post(reverse("challenges:snapshot", args=[submissao.pk]))
+
+    assert response.status_code == 200
+    assert submissao.snapshot.commit_sha == ""
+    assert submissao.snapshot.status == RepoSnapshot.Status.ERROR
 
 
 @pytest.mark.django_db
