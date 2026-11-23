@@ -2,9 +2,15 @@
 from dataclasses import asdict
 
 from django.utils.dateparse import parse_datetime
-
-from integrations.github_client import RepoDownloadError, download_repo, list_commits, parse_repo_url
 from integrations.repo_analysis import analyze_files
+
+from integrations.github_client import (
+    EmptyRepoError,
+    RepoDownloadError,
+    download_repo,
+    list_commits,
+    parse_repo_url,
+)
 
 from .models import RepoSnapshot, Submission
 
@@ -15,15 +21,19 @@ ISSUE_TEXTS = {
 }
 
 
-def freeze_submission(submission, repo_info=None):
+def freeze_submission(submission, repo_info=None, reject_empty=False):
     """Registra o commit que está no repositório agora, com o resumo do histórico.
 
-    Roda no envio da submissão, então faz uma única consulta curta ao GitHub e nunca falha:
-    se o GitHub não responder, a entrega é aceita e o commit é registrado na análise."""
+    Roda no envio da submissão, então faz uma única consulta curta ao GitHub. Se o GitHub não
+    responder, a entrega é aceita e o commit é registrado na análise. Repositório vazio é outro
+    caso: com reject_empty, usado na entrega, o erro sobe para a tela recusar o envio."""
     report = {"repo": _repo_facts(repo_info), "history": {}}
     commit_sha = ""
     try:
         history = list_commits(submission.repo_url)
+    except EmptyRepoError:
+        if reject_empty:
+            raise
     except RepoDownloadError:
         pass
     else:

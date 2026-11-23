@@ -34,6 +34,10 @@ class RepoDownloadError(Exception):
     """Não foi possível consultar ou baixar o repositório. A mensagem é exibida para a empresa."""
 
 
+class EmptyRepoError(RepoDownloadError):
+    """O repositório existe, mas ainda não tem nenhum commit."""
+
+
 @dataclass
 class CommitHistory:
     """Resumo do histórico: só contagens e datas. Nomes e e-mails dos autores não são guardados."""
@@ -115,27 +119,33 @@ def list_commits(url):
     except requests.RequestException as error:
         raise RepoDownloadError("Não foi possível consultar o GitHub.") from error
 
-    # 409 é a resposta para repositório vazio
+    # 409 é a resposta para repositório vazio: existe, mas ainda não recebeu nenhum commit
+    if response.status_code == 409:
+        raise EmptyRepoError("O repositório ainda não tem nenhum commit.")
     if response.status_code != 200:
         raise RepoDownloadError(f"GitHub respondeu {response.status_code} ao consultar os commits.")
 
-    commits = response.json()
-    dates = [item["commit"]["author"]["date"] for item in commits]
-    # Autor é a conta do GitHub; sem conta ligada ao commit, vale o e-mail. Assim a mesma pessoa
-    # com dois e-mails configurados no git não aparece como dois autores.
-    authors = {
-        (item.get("author") or {}).get("login") or item["commit"]["author"]["email"].lower()
-        for item in commits
-    }
-    return CommitHistory(
-        head_sha=commits[0]["sha"],  # a API devolve do mais recente para o mais antigo
-        count=len(commits),
-        capped=len(commits) == COMMITS_PER_PAGE,
-        first_at=min(dates),
-        last_at=max(dates),
-        active_days=len({date[:10] for date in dates}),
-        authors=len(authors),
-    )
+    try:
+        commits = response.json()
+        dates = [item["commit"]["author"]["date"] for item in commits]
+        # Autor é a conta do GitHub; sem conta ligada ao commit, vale o e-mail. Assim a mesma pessoa
+        # com dois e-mails configurados no git não aparece como dois autores.
+        authors = {
+            (item.get("author") or {}).get("login") or item["commit"]["author"]["email"].lower()
+            for item in commits
+        }
+        return CommitHistory(
+            head_sha=commits[0]["sha"],  # a API devolve do mais recente para o mais antigo
+            count=len(commits),
+            capped=len(commits) == COMMITS_PER_PAGE,
+            first_at=min(dates),
+            last_at=max(dates),
+            active_days=len({date[:10] for date in dates}),
+            authors=len(authors),
+        )
+    except (AttributeError, IndexError, KeyError, TypeError, ValueError) as error:
+        # Corpo fora do formato documentado: tratado como consulta que falhou, e não como erro do sistema
+        raise RepoDownloadError("O GitHub devolveu uma resposta inesperada ao consultar os commits.") from error
 
 
 def download_repo(url, ref=""):
